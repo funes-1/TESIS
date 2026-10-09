@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Goniometría pre/post</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EDF0F1; --surface:#FFFFFF; --surface2:#F4F6F7; --ink:#14232B; --muted:#586A75; --line:#D6DDE1;
+  --accent:#0A7771; --accent-ink:#FFFFFF; --accent-soft:#DDEFEC;
+  --pre:#8693A0; --post:#0A7771; --loss:#BF4B33; --loss-soft:#F6E2DC; --gain-soft:#DDEFEC;
+  --warn-bg:#FBF1D9; --warn-ink:#6B4A0B;
+  --s1:#0A7771; --s2:#3A6EB5; --s3:#C0512F; --s4:#B0821C; --s5:#7A58A8; --s6:#5C8A2E;
+  --font-ui:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Bricolage Grotesque","Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E161B; --surface:#16222A; --surface2:#1C2A33; --ink:#E7EEF1; --muted:#93A5B0; --line:#2C3C46;
+    --accent:#3FC1B7; --accent-ink:#06211F; --accent-soft:#17383A;
+    --pre:#7D8B97; --post:#3FC1B7; --loss:#EC8A72; --loss-soft:#3B2620; --gain-soft:#17383A;
+    --warn-bg:#3A2E12; --warn-ink:#F0D18A;
+    --s1:#3FC1B7; --s2:#6FA0E6; --s3:#EC8A72; --s4:#E0B857; --s5:#B396DE; --s6:#93C464;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E161B; --surface:#16222A; --surface2:#1C2A33; --ink:#E7EEF1; --muted:#93A5B0; --line:#2C3C46;
+  --accent:#3FC1B7; --accent-ink:#06211F; --accent-soft:#17383A;
+  --pre:#7D8B97; --post:#3FC1B7; --loss:#EC8A72; --loss-soft:#3B2620; --gain-soft:#17383A;
+  --warn-bg:#3A2E12; --warn-ink:#F0D18A;
+  --s1:#3FC1B7; --s2:#6FA0E6; --s3:#EC8A72; --s4:#E0B857; --s5:#B396DE; --s6:#93C464;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+
+/* Cabecera */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:28px 0 18px}
+.top h1{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,4vw,38px);line-height:1.08;margin:0;letter-spacing:-.02em}
+.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:14px;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--accent);background:var(--surface2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07);background:var(--accent)}
+.btn.danger{color:var(--loss)}
+.btn.small{padding:5px 10px;font-size:13px}
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+.banner[hidden]{display:none}
+
+/* Pestañas */
+.tabbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:12px 16px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;font-size:15px}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.panel{padding:22px 0 56px}
+.panel[hidden]{display:none}
+
+/* Métricas */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0;margin-bottom:22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.metric{padding:14px 18px 14px 0;margin-right:18px;border-right:1px solid var(--line)}
+.metric:last-child{border-right:0}
+.metric .v{font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.metric .v small{font-size:15px;font-weight:500;color:var(--muted);margin-left:2px}
+.metric .l{color:var(--muted);font-size:13px;margin-top:2px}
+.metric .v.pos{color:var(--accent)} .metric .v.neg{color:var(--loss)}
+
+/* Tarjetas y grillas */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h2{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 2px;letter-spacing:-.01em}
+.card .hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+.grid{display:grid;gap:16px;margin-bottom:16px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g21{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+@media(max-width:900px){.g3,.g2,.g21{grid-template-columns:minmax(0,1fr)}}
+.chart{position:relative;height:250px}
+.chart.tall{height:300px}
+.nodata{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;text-align:center;padding:0 20px}
+.nodata[hidden]{display:none}
+
+/* Barra de herramientas */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+.field select,.field input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);min-height:36px}
+.field input[type=number]{width:90px}
+.spacer{flex:1}
+
+/* Tablas */
+.scroll{overflow-x:auto;max-width:100%}
+.tbl{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+.tbl th,.tbl td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl th{font-weight:600;color:var(--muted);font-size:13px;background:var(--surface)}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl tbody tr:hover td{background:var(--surface2)}
+.tbl.tight td,.tbl.tight th{padding:4px 4px}
+input.cell{width:100%;min-width:56px;border:1px solid transparent;background:transparent;border-radius:6px;padding:5px 7px;text-align:right}
+input.cell.l{text-align:left;min-width:110px}
+input.cell:hover{border-color:var(--line)}
+input.cell:focus{border-color:var(--accent);background:var(--surface);outline:none;box-shadow:0 0 0 2px var(--accent-soft)}
+input.cell.bad{border-color:var(--loss);background:var(--loss-soft)}
+select.cell{background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 4px;cursor:pointer}
+select.cell:hover{border-color:var(--line)}
+.del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px}
+.del:hover{color:var(--loss);background:var(--loss-soft)}
+.gonio th.grp{text-align:center;border-left:1px solid var(--line);color:var(--ink)}
+.gonio td.gb,.gonio th.gb{border-left:1px solid var(--line)}
+.gonio .stick{position:sticky;background:var(--surface);z-index:2}
+.gonio .c1{left:0;min-width:64px}
+.gonio .c2{left:64px;min-width:56px;border-right:1px solid var(--line)}
+.gonio td.stick{background:var(--surface)}
+.gonio tbody tr:hover td.stick{background:var(--surface2)}
+.gonio tr.first td{border-top:2px solid var(--line)}
+.gonio td.dif{font-weight:600;min-width:46px;text-align:center}
+.gonio td.dif.pos{color:var(--accent)} .gonio td.dif.neg{color:var(--loss)} .gonio td.dif.zero{color:var(--muted)}
+.gonio .muted-code{color:var(--muted)}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted)}
+.chip.ok{background:var(--gain-soft);color:var(--accent)}
+.chip.no{background:var(--loss-soft);color:var(--loss)}
+caption{caption-side:top;text-align:left;font-family:var(--font-display);font-weight:700;font-size:16px;padding:0 0 8px;color:var(--ink)}
+
+/* Diales de rango de movimiento */
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px}
+.gauge{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px}
+.gauge figcaption{font-weight:600;font-size:14px;margin-bottom:2px}
+.gauge svg{display:block;width:100%;height:auto}
+.gauge .legend{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.gauge .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:baseline}
+.gauge .gain{font-weight:700;font-size:13px}
+.gauge .gain.pos{color:var(--accent)} .gauge .gain.neg{color:var(--loss)}
+
+.note{color:var(--muted);font-size:13px;max-width:90ch;margin:8px 0 0}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:26px 0 12px}
+.sectionhead h2{font-family:var(--font-display);font-size:22px;margin:0;letter-spacing:-.015em}
+
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:20px;width:min(640px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(8,16,20,.55)}
+dialog h3{font-family:var(--font-display);margin:0 0 6px;font-size:20px}
+dialog p{margin:0 0 10px;color:var(--muted);font-size:14px}
+dialog textarea{width:100%;min-height:170px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;resize:vertical}
+.dlg-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:14px;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.drop{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border:2px dashed var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;background:var(--surface);transition:border-color .15s,background .15s}
+.drop strong{font-family:var(--font-display);font-size:16px}
+.drop span{color:var(--muted);font-size:14px;display:block}
+body.dragging .drop{border-color:var(--accent);background:var(--accent-soft)}
+.pdfsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
+.pdfsum div{background:var(--surface2);border-radius:8px;padding:8px 12px}
+.pdfsum b{display:block;font-family:var(--font-display);font-size:22px}
+.pdfsum small{color:var(--muted)}
+.warns{max-height:150px;overflow:auto;margin:8px 0;padding-left:18px;font-size:13px;color:var(--warn-ink);background:var(--warn-bg);border-radius:8px;padding-top:8px;padding-bottom:8px;padding-right:12px}
+.warns[hidden]{display:none}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+.sync i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.sync.ok i{background:var(--accent)} .sync.wait i{background:#D4A017} .sync.err i{background:var(--loss)}
+input,select,textarea{font-size:16px!important}button,.btn,summary.btn,.del{min-height:44px}.del{min-width:44px}button:disabled{opacity:.55;cursor:not-allowed}[hidden]{display:none!important}.steps{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 8px}.privacy{display:flex;align-items:center;gap:8px;min-height:44px}.privacy input{width:20px;height:20px}.menu{position:relative}.menucontent{position:absolute;right:0;top:100%;z-index:35;display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);padding:12px;border-radius:12px;width:260px;box-shadow:0 10px 30px #0003}.drop{margin-top:10px}#importMenu{margin-bottom:12px}#importMenu>summary{width:max-content}.scroll{max-height:65vh;overflow:auto}.tbl thead th{position:sticky;top:0;background:var(--surface2);z-index:4}.gonio thead tr:nth-child(2) th{top:48px}.gonio thead .stick{z-index:6}.gonio thead tr:first-child{height:48px}.incomplete{background:var(--warn-bg)}.incompleteBadge{display:block;color:var(--warn-ink);font-size:11px;font-weight:600}.validation{padding:12px;background:var(--warn-bg);color:var(--warn-ink);position:sticky;top:60px;z-index:22}.capture{table-layout:fixed;width:100%}.capture th:first-child{width:42%;white-space:normal}.capture input{width:100%;min-height:48px;border:1px solid var(--line);background:var(--surface2);border-radius:6px;padding:8px}.capture td{padding:6px}.conclusion{font-size:20px;font-weight:700}.pairbars{text-align:left;padding:12px 0}.pairbars strong{float:right}.track{height:16px;background:var(--line);border-radius:4px;margin:4px 0 12px;overflow:hidden}.track span{display:block;height:100%}.pairbars small{color:var(--muted)}.chart-text{font-size:13px;margin:8px 0}.chart-text summary{cursor:pointer;min-height:32px}.chart-text .scroll{max-width:100%;max-height:240px}.export-chart{margin-top:8px}#authForm input{min-height:44px;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:8px}#authForm .field{margin-top:10px}#excelPreview{max-height:250px;margin-top:12px}#captureCard .toolbar{margin-top:0}.gauges{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:700px){.wrap{padding:0 12px}.top{padding-top:20px}.top h1{font-size:27px}.menucontent{right:auto;left:0}.capture th:first-child{width:36%;font-size:13px}.capture th,.capture td{padding:6px 3px}.capture th:last-child{width:15%}.capture input{padding:4px}.gauges{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{align-items:center}.steps .btn{font-size:12px;flex:1;padding:6px}.g3{grid-template-columns:1fr}#fSes{width:90px}}
+@media print{ :root{--bg:white;--surface:white;--surface2:#f1f3f4;--ink:#111;--muted:#444;--line:#ccc;--post:#08756b;--pre:#88939c}body{background:white;color:#111}.top .actions,.tabbar,.steps,.toolbar,#importMenu,.export-chart,.demoBanner,.banner,dialog,.toast,.chart-text,.note:first-of-type{display:none!important}.wrap{max-width:none;padding:0}.panel[hidden]{display:none!important}#p-res{display:block!important}.card,.gauge{break-inside:avoid;border:1px solid #ccc;box-shadow:none}.scroll{max-height:none;overflow:visible}.tbl{font-size:9px}.tbl th,.tbl td{padding:4px}.tbl thead th{position:static}.grid.g2{grid-template-columns:1fr 1fr}.chart{height:220px!important}.gauges{grid-template-columns:repeat(3,1fr)}.tbl caption{font-size:15px}.chart-text{display:none!important}@page{size:A4 landscape;margin:12mm}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Goniometría antes y después de cada sesión</h1>
+      <p>Cargá los datos como en el Excel. Las diferencias, los resúmenes y los gráficos se calculan solos.</p>
+    </div>
+    <div class="actions">
+      <span class="sync wait" id="syncStat" role="status"><i></i><span id="syncTxt">Guardado local</span></span>
+      <button class="btn" id="themeBtn" type="button">Tema: automático</button>
+      <label class="privacy"><input id="hideNames" type="checkbox" checked> Ocultar nombres</label>
+      <button class="btn" id="loginBtn" type="button">Cuenta y nube</button>
+      <details class="menu"><summary class="btn">Más opciones</summary><div class="menucontent">
+      <button class="btn" id="csvPart" type="button">CSV participantes</button><button class="btn" id="csvGonio" type="button">CSV mediciones</button>
+      <button class="btn" id="backupBtn" type="button">Respaldo JSON (incluye nombres)</button><button class="btn" id="restoreBtn" type="button">Restaurar respaldo</button><input hidden type="file" id="restoreFile" accept=".json,application/json">
+      <button class="btn" id="printBtn" type="button">Imprimir resumen</button>
+      <button class="btn" id="btnDemo" type="button">Cargar datos de ejemplo</button>
+      <button class="btn danger" id="btnClear" type="button">Borrar todo</button></div></details>
+    </div>
+  </header>
+  <div class="banner" id="demoBanner" hidden>
+    <span>Estás viendo datos de ejemplo (ficticios). No se guardan en la nube. Cuando quieras, empezá con los tuyos.</span>
+    <button class="btn small" id="btnStart" type="button">Empezar con mis datos</button>
+  </div>
+  <details id="importMenu"><summary class="btn">Importar PDF</summary><div class="drop" id="dropZone">
+    <div><strong>Cargar el PDF actualizado</strong><span>Arrastralo hasta acá o elegilo desde tu equipo. Se leen las hojas Participantes y Goniometría, y el resumen se recalcula.</span></div>
+    <div><input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden><button class="btn primary" id="btnPdf" type="button">Elegir PDF</button></div>
+  </div>
+</details></div>
+
+<div class="tabbar">
+  <div class="wrap">
+    <div class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" id="t-part" aria-controls="p-part" data-tab="part" type="button">Participantes</button>
+      <button class="tab" role="tab" id="t-gonio" aria-controls="p-gonio" data-tab="gonio" type="button">Goniometría</button>
+      <button class="tab" role="tab" id="t-res" aria-controls="p-res" data-tab="res" type="button">Resumen descriptivo</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap"><div class="banner" id="cloudConflict" hidden><span>Otro dispositivo tiene datos distintos. La nube está pausada.</span><button class="btn" id="resolveCloud">Revisar versiones</button></div><div class="banner" id="localConflict" hidden><span>Otra pestaña modificó los datos locales. La nube está pausada.</span><button class="btn" id="reloadLocal">Respaldar y cargar esa versión</button></div>
+  <nav class="steps" aria-label="Guía de carga"><button class="btn" data-go="part">1. Agregar participantes</button><button class="btn" data-go="gonio">2. Cargar mediciones</button><button class="btn" data-go="res">3. Ver resumen</button></nav>
+  <p class="note">Usá códigos para identificar participantes. Los nombres son opcionales y nunca se envían a la nube. EVA: escala visual analógica del dolor (0 a 10). DE: desvío estándar. RIC: rango intercuartílico.</p>
+  <p id="validation" role="alert" class="validation" hidden></p>
+  <!-- PARTICIPANTES -->
+  <section class="panel" id="p-part" role="tabpanel" aria-labelledby="t-part" hidden>
+    <div class="metrics" id="mPart"></div>
+    <div class="toolbar">
+      <button class="btn primary" id="addPart" type="button">Agregar participante</button>
+      <button class="btn" id="pastePart" type="button">Pegar desde Excel</button>
+    </div>
+    <div class="card">
+      <div class="scroll"><table class="tbl" id="tblPart"></table></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h2>Sexo</h2><p class="hint">Cantidad de participantes</p><div class="chart"><canvas id="cSex"></canvas><p class="nodata">Sin datos todavía</p></div></div>
+      <div class="card"><h2>Edad</h2><p class="hint">Participantes por década</p><div class="chart"><canvas id="cAge"></canvas><p class="nodata">Sin datos todavía</p></div></div>
+      <div class="card"><h2>EVA inicial</h2><p class="hint">Participantes por puntaje (0 a 10)</p><div class="chart"><canvas id="cEva"></canvas><p class="nodata">Sin datos todavía</p></div></div>
+    </div>
+  </section>
+
+  <!-- GONIOMETRÍA -->
+  <section class="panel" id="p-gonio" role="tabpanel" aria-labelledby="t-gonio" hidden>
+    <div class="metrics" id="mGonio"></div><div class="toolbar"><button class="btn primary" id="captureToggle" type="button">Ver grilla completa</button><span>Captura: un participante y una sesión a la vez.</span></div><div class="card" id="captureCard"></div>
+    <div class="toolbar">
+      <label class="field">Participante
+        <select id="fPart"></select>
+      </label>
+      <label class="field">Movimiento en el gráfico
+        <select id="fMov"></select>
+      </label>
+      <label class="field">Sesiones por participante
+        <input type="number" id="fSes" min="1" max="12" step="1">
+      </label>
+      <span class="spacer"></span>
+      <button class="btn" id="pasteGonio" type="button">Pegar desde Excel</button>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h2 id="romTitle">Pre y post por sesión</h2><p class="hint">Promedio en grados. La brecha entre las líneas es lo que se gana en cada sesión.</p><div class="chart tall"><canvas id="cRom"></canvas><p class="nodata">Cargá mediciones pre y post para ver el gráfico</p></div></div>
+      <div class="card"><h2>Ganancia por sesión</h2><p class="hint">Diferencia post menos pre, promedio por movimiento.</p><div class="chart tall"><canvas id="cGain"></canvas><p class="nodata">Cargá mediciones pre y post para ver el gráfico</p></div></div>
+    </div>
+    <div class="card">
+      <div class="scroll"><table class="tbl tight gonio" id="tblGonio"></table></div>
+      <p class="note">La diferencia es post menos pre. Verde indica ganancia de movimiento y rojo una pérdida.</p>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section class="panel" id="p-res" role="tabpanel" aria-labelledby="t-res" hidden>
+    <div class="toolbar"><label class="field">Sexo<select id="resSex"><option value="all">Todos</option><option value="F">Femenino</option><option value="M">Masculino</option><option value="">Sin dato</option></select></label><label class="field">Sesión<select id="resSession"></select></label><label class="field">Comparación<select id="resComparison"><option value="paired">Pre/post de cada sesión</option><option value="ends">Primera pre / última post</option></select></label></div><p id="conclusion" class="conclusion" role="status"></p><button class="btn primary" id="resEmptyAction" data-go="gonio" hidden>Cargar mediciones</button><div class="metrics" id="mRes"></div><p class="note">Completas (%) usa como denominador participantes × sesiones seleccionadas × 6 movimientos; puede bajar si una persona tuvo menos sesiones. Primera/última requiere al menos dos sesiones completas por movimiento y compara sus extremos disponibles. La ganancia global reúne movimientos distintos: revisá también el desglose.</p>
+
+    <div class="sectionhead"><h2>Rango de movimiento promedio, pre y post</h2></div>
+    <div class="gauges" id="gauges"></div>
+
+    <div class="grid g2">
+      <div class="card"><h2>Diferencia media por movimiento</h2><p class="hint">Todas las sesiones. Las barras finas marcan ±1 desvío estándar.</p><div class="chart tall"><canvas id="cDiff"></canvas><p class="nodata">Sin mediciones completas todavía</p></div></div>
+      <div class="card"><h2>Ganancia media por participante</h2><p class="hint">Promedio de todos los movimientos y sesiones.</p><div class="chart tall" id="partBox"><canvas id="cPart"></canvas><p class="nodata">Sin mediciones completas todavía</p></div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div><h2>¿Se relaciona la ganancia con las características basales?</h2><p class="hint" id="scNote">Cada punto es un participante.</p></div>
+        <label class="field">Variable en el eje horizontal
+          <select id="scVar">
+            <option value="eva">EVA inicial</option>
+            <option value="evo">Tiempo de evolución (meses)</option>
+            <option value="age">Edad (años)</option>
+          </select>
+        </label>
+      </div>
+      <div class="chart tall"><canvas id="cScatter"></canvas><p class="nodata">Hacen falta al menos 2 participantes con datos</p></div>
+    </div>
+
+    <div class="sectionhead">
+      <h2>Tablas del resumen</h2>
+      <button class="btn small" id="copyTables" type="button">Copiar tablas para Excel</button>
+    </div>
+    <div id="tablesRes">
+      <div class="grid">
+        <div class="card"><div class="scroll"><table class="tbl" id="tQual"></table></div></div>
+        <div class="card"><div class="scroll"><table class="tbl" id="tBase"></table></div></div>
+      </div>
+      <div class="card"><div class="scroll"><table class="tbl" id="tGonio"></table></div>
+        <p class="note">Desvío estándar muestral y cuartiles por el método inclusivo (igual que CUARTIL.INC de Excel). El valor p sale de una prueba t pareada entre pre y post, usando el promedio de cada participante para no contar varias veces a la misma persona. Con pocos participantes, tomalo como orientativo.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="authDialog"><h3>Cuenta y sincronización privada</h3><p id="authMsg" role="status">Sin sesión: los datos quedan en este navegador. La nube recibe códigos, no nombres.</p><form id="authForm"><label class="field">Correo<input type="email" id="authEmail" autocomplete="username" required></label><label class="field">Contraseña<input type="password" id="authPass" autocomplete="current-password" required></label><div class="dlg-actions"><button class="btn primary" type="submit">Iniciar sesión</button><button class="btn" type="button" id="logout" hidden>Cerrar sesión</button><button class="btn" type="button" id="authClose">Cerrar</button></div></form><details><summary>Configuración requerida de Firebase</summary><p>El administrador debe activar Email/Password en Authentication, crear las cuentas y publicar reglas de acceso por usuario. El HTML no puede modificar las reglas del servidor. Para el login, alojá este archivo en HTTPS o localhost y autorizá el dominio en Firebase. La carga, edición y respaldo local no requieren login.</p><p>Los datos antiguos de goniometria/principal no se leen ni se borran automáticamente. Para migrarlos, restaurá un respaldo local y revisá la sincronización de tu cuenta. Cerrá el acceso al documento antiguo desde la consola. Las claves de configuración web son públicas; no reemplazan las reglas de acceso.</p><pre style="white-space:pre-wrap">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/goniometria/{docId} {
+      allow read, write: if request.auth != null
+                        &amp;&amp; request.auth.uid == uid;
+    }
+    match /goniometria/{docId} {
+      allow read, write: if false;
+    }
+  }
+}</pre><p>Si el proyecto aloja otras aplicaciones, integrá estas reglas conservando sus permisos específicos. Eliminá cualquier regla global que permita acceso público: las reglas permisivas se suman.</p></details></dialog>
+<dialog id="conflictDialog"><h3>Datos distintos</h3><p>La sincronización está pausada. Cancelar o presionar Esc conserva ambas versiones y no escribe en la nube.</p><div class="dlg-actions"><button class="btn" id="conflictCancel">Cancelar</button><button class="btn" id="conflictRemote">Usar nube y respaldar local</button><button class="btn danger" id="conflictLocal">Subir datos locales…</button></div></dialog>
+
+<dialog id="dlgPaste">
+  <h3 id="dpTitle">Pegar desde Excel</h3>
+  <p id="dpHelp"></p>
+  <textarea id="dpText" spellcheck="false" aria-label="Datos pegados"></textarea>
+  <label class="field" style="margin-top:10px">Qué hacer con los datos actuales
+    <select id="dpMode"><option value="merge">Agregar o actualizar por código</option><option value="replace">Reemplazar todo</option></select>
+  </label>
+  <div class="dlg-actions">
+    <button class="btn" id="dpCancel" type="button">Cancelar</button>
+    <button class="btn primary" id="dpOk" type="button">Importar</button>
+  </div>
+</dialog>
+<dialog id="dlgPdf">
+  <h3>Vista previa del PDF</h3>
+  <p id="pdfName"></p>
+  <div class="pdfsum" id="pdfSum"></div>
+  <ul class="warns" id="pdfWarn" hidden></ul>
+  <p id="pdfMsg"></p>
+  <label class="field" id="pdfModeBox">Qué hacer con los datos actuales
+    <select id="pdfMode"><option value="merge">Agregar o actualizar por código</option><option value="replace">Reemplazar todo con lo que dice el PDF</option></select>
+  </label>
+  <div class="dlg-actions">
+    <button class="btn" id="pdfCancel" type="button">Cancelar</button>
+    <button class="btn primary" id="pdfOk" type="button">Cargar en el tablero</button>
+  </div>
+</dialog>
+<dialog id="dlgConfirm">
+  <h3 id="dcTitle">¿Seguro?</h3>
+  <p id="dcMsg"></p>
+  <div class="dlg-actions">
+    <button class="btn" id="dcNo" type="button">Cancelar</button>
+    <button class="btn primary" id="dcYes" type="button">Confirmar</button>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const MOVS=[
+  {k:'flex',l:'Flexión',s:'Flexión'},
+  {k:'ext',l:'Extensión',s:'Extensión'},
+  {k:'ild',l:'Inclinación lateral derecha',s:'Incl. der.'},
+  {k:'ili',l:'Inclinación lateral izquierda',s:'Incl. izq.'},
+  {k:'rd',l:'Rotación derecha',s:'Rot. der.'},
+  {k:'ri',l:'Rotación izquierda',s:'Rot. izq.'}
+];
+
+/* ---------- Utilidades numéricas ---------- */
+function num(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(typeof v!=='number'&&!String(v).trim())return null;
+  const n=typeof v==='number'?v:Number(String(v).trim().replace(',','.'));
+  return Number.isFinite(n)?n:null;
+}
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const mean=a=>a.length?sum(a)/a.length:null;
+const sdev=a=>{if(a.length<2)return null;const m=mean(a);return Math.sqrt(sum(a.map(x=>(x-m)**2))/(a.length-1));};
+const quant=(a,q)=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const p=(s.length-1)*q;const lo=Math.floor(p),hi=Math.ceil(p);return s[lo]+(s[hi]-s[lo])*(p-lo);};
+function desc(a){
+  return {n:a.length,mean:mean(a),sd:sdev(a),med:quant(a,.5),q1:quant(a,.25),q3:quant(a,.75),min:a.length?Math.min(...a):null,max:a.length?Math.max(...a):null};
+}
+function fmt(x,d=1){
+  if(x===null||x===undefined||!Number.isFinite(x))return '—';
+  return x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+function fmtSigned(x,d=1){
+  if(x===null||x===undefined||!Number.isFinite(x))return '—';
+  return (x>0?'+':'')+fmt(x,d);
+}
+function fmtP(p){
+  if(p===null||p===undefined)return '—';
+  if(p<0.001)return '<0,001';
+  return p.toLocaleString('es-AR',{minimumFractionDigits:3,maximumFractionDigits:3});
+}
+function pearson(xs,ys){
+  const n=xs.length;if(n<3)return null;
+  const mx=mean(xs),my=mean(ys);
+  let sxy=0,sxx=0,syy=0;
+  for(let i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sxx+=(xs[i]-mx)**2;syy+=(ys[i]-my)**2;}
+  if(sxx===0||syy===0)return null;
+  return sxy/Math.sqrt(sxx*syy);
+}
+/* Distribución t: p bilateral vía beta incompleta regularizada */
+function lgamma(x){
+  const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y=x,tmp=x+5.5;tmp-=(x+.5)*Math.log(tmp);let ser=1.000000000190015;
+  for(let j=0;j<6;j++){ser+=c[j]/++y;}
+  return -tmp+Math.log(2.5066282746310005*ser/x);
+}
+function betacf(a,b,x){
+  const MAXIT=200,EPS=3e-12,FPMIN=1e-30;
+  const qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=MAXIT;m++){
+    const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+    d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;
+    const del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;
+  }
+  return h;
+}
+function betai(a,b,x){
+  if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));
+  if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a;
+  return 1-bt*betacf(b,a,1-x)/b;
+}
+function pairedT(diffs){
+  const n=diffs.length;if(n<2)return {p:null,dz:null};
+  const m=mean(diffs),s=sdev(diffs);
+  if(s===0)return {p:m===0?1:0,dz:null};
+  const t=m/(s/Math.sqrt(n));const df=n-1;
+  return {p:betai(df/2,.5,df/(df+t*t)),dz:m/s};
+}
+
+/* ---------- Estado ---------- */
+const KEY='goniometria-dashboard-v1';
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function demoState(){
+  const r=rng(42);
+  const names=['Ana G.','Luis M.','Marta R.','Carlos P.','Julia S.','Diego F.','Laura B.','Pablo N.','Sofía T.'];
+  const sexes=['F','M','F','M','F','M','F','M','F'];
+  const range={flex:[38,52],ext:[42,58],ild:[28,40],ili:[28,40],rd:[55,74],ri:[55,74]};
+  const st={participants:[],gonio:{},sessions:5,demo:true};
+  names.forEach((nm,i)=>{
+    const code='P0'+(i+1);
+    const p={code,name:nm,age:24+Math.round(r()*34),sex:sexes[i],evolution:2+Math.round(r()*34),eva:4+Math.round(r()*5)};
+    st.participants.push(p);
+    const nS=i>=7?3:5;
+    const base={};
+    MOVS.forEach(m=>{const [lo,hi]=range[m.k];base[m.k]=Math.round(lo+r()*(hi-lo)-p.eva*.8);});
+    for(let s=1;s<=nS;s++){
+      const row={};
+      MOVS.forEach(m=>{
+        const pre=Math.round(base[m.k]+(s-1)*(1.4+r())+(r()-.5)*3);
+        const gain=Math.round(3.5+r()*4-(s-1)*.4-r()*2.8);
+        row[m.k]=[pre,pre+gain];
+      });
+      st.gonio[code+'|'+s]=row;
+    }
+  });
+  return st;
+}
+function emptyState(){return {participants:[],gonio:{},sessions:5,demo:false};}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+let storageKey=KEY;
+function saveLocal(){try{localStorage.setItem(storageKey,JSON.stringify(S));}catch(e){toast('No se pudo guardar en este navegador. Descargá un respaldo.');}}
+function save(){saveLocal();cloudPush();}
+let S=load()||emptyState();
+if(!S.participants||!S.gonio){S=emptyState();}
+const ui={tab:'part',gPart:'all',gMov:'all',scVar:'eva',capture:true,capCode:'',capSession:1,hideNames:true,sex:'all',session:'all',comparison:'paired'};
+
+/* ---------- Cálculo central ---------- */
+function compute(list){
+  const P=list||S.participants.filter(p=>ui.sex==='all'||p.sex===ui.sex);
+  const nS=S.sessions;
+  const pairs=MOVS.map(()=>[]);
+  const bySession=MOVS.map(()=>Array.from({length:nS},()=>({pre:[],post:[],diff:[]})));
+  const perPart={};
+  P.forEach(p=>perPart[p.code]={all:[],mov:MOVS.map(()=>[])});
+  let done=0;
+  P.forEach(p=>{
+    for(let s=1;s<=nS;s++){
+      if(!list&&ui.session!=='all'&&s!==+ui.session)continue;
+      const row=S.gonio[p.code+'|'+s];if(!row)continue;
+      MOVS.forEach((m,mi)=>{
+        const v=row[m.k];if(!v)return;
+        let pre=num(v[0]),post=num(v[1]);
+        if(!list&&ui.comparison==='ends'){
+          const valid=Array.from({length:nS},(_,i)=>({s:i+1,v:S.gonio[p.code+'|'+(i+1)]?.[m.k]})).filter(x=>x.v&&num(x.v[0])!==null&&num(x.v[1])!==null);
+          if(valid.length<2||s!==valid[0].s)return;pre=num(valid[0].v[0]);post=num(valid[valid.length-1].v[1]);
+        }
+        if(pre===null||post===null)return;
+        const d=post-pre;done++;
+        pairs[mi].push({code:p.code,s,pre,post,diff:d});
+        const b=bySession[mi][s-1];b.pre.push(pre);b.post.push(post);b.diff.push(d);
+        perPart[p.code].all.push(d);perPart[p.code].mov[mi].push(d);
+      });
+    }
+  });
+  const expected=P.length*(!list&&(ui.session!=='all'||ui.comparison==='ends')?1:nS)*MOVS.length;
+  const mov=MOVS.map((m,mi)=>{
+    const pr=pairs[mi];
+    const diffs=pr.map(x=>x.diff);
+    const d=desc(diffs);
+    const partMeans=P.map(p=>mean(perPart[p.code].mov[mi])).filter(v=>v!==null);
+    const t=pairedT(partMeans);
+    return {m,n:pr.length,meanPre:mean(pr.map(x=>x.pre)),meanPost:mean(pr.map(x=>x.post)),d,
+      pctImp:pr.length?100*diffs.filter(x=>x>0).length/pr.length:null,p:t.p,dz:t.dz,nPart:partMeans.length};
+  });
+  const allDiffs=[].concat(...pairs).map(x=>x.diff);
+  const all=desc(allDiffs);
+  const allPre=[].concat(...pairs).map(x=>x.pre),allPost=[].concat(...pairs).map(x=>x.post);
+  const partGain=P.map(p=>({p,g:mean(perPart[p.code].all),n:perPart[p.code].all.length})).filter(x=>x.g!==null);
+  return {P,nS,pairs,bySession,mov,all,allPre,allPost,done,expected,partGain,
+    pctImp:allDiffs.length?100*allDiffs.filter(x=>x>0).length/allDiffs.length:null};
+}
+
+/* ---------- Tema y gráficos ---------- */
+function theme(){
+  const cs=getComputedStyle(document.documentElement);const g=n=>cs.getPropertyValue(n).trim();
+  return {ink:g('--ink'),muted:g('--muted'),line:g('--line'),pre:g('--pre'),post:g('--post'),loss:g('--loss'),surface:g('--surface'),
+    s:[1,2,3,4,5,6].map(i=>g('--s'+i))};
+}
+const charts={};
+const whisker={id:'whisker',afterDatasetsDraw(chart){
+  const t=theme();const ctx=chart.ctx;
+  chart.data.datasets.forEach((ds,i)=>{
+    if(!ds.sd)return;
+    const meta=chart.getDatasetMeta(i);const sc=chart.scales.y;
+    meta.data.forEach((bar,j)=>{
+      const sd=ds.sd[j],v=ds.data[j];if(sd==null||v==null)return;
+      const y1=sc.getPixelForValue(v+sd),y2=sc.getPixelForValue(v-sd),x=bar.x;
+      ctx.save();ctx.strokeStyle=t.ink;ctx.lineWidth=1.4;ctx.beginPath();
+      ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.moveTo(x-5,y1);ctx.lineTo(x+5,y1);ctx.moveTo(x-5,y2);ctx.lineTo(x+5,y2);ctx.stroke();ctx.restore();
+    });
+  });
+}};
+if(typeof Chart!=='undefined'){Chart.register(whisker);}
+function mk(id,cfg,empty){
+  const cv=document.getElementById(id);cv.setAttribute('role','img');cv.setAttribute('aria-label',cv.closest('.card')?.querySelector('h2')?.textContent||id);const box=cv.parentElement;let exp=box.parentElement.querySelector('[data-export="'+id+'"]');if(!exp){exp=document.createElement('button');exp.className='btn small export-chart';exp.dataset.export=id;exp.textContent='Descargar PNG';exp.onclick=()=>{if(!charts[id])return toast('No hay gráfico disponible.');const a=document.createElement('a');a.download=id+'.png';a.href=charts[id].toBase64Image();a.click();};box.after(exp);}const ndummy=null;const nd=box.querySelector('.nodata');
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+  if(typeof Chart==='undefined'){nd.textContent='No se pudo cargar la librería de gráficos. Revisá tu conexión.';nd.hidden=false;cv.style.visibility='hidden';return;}
+  if(empty){nd.hidden=false;cv.style.visibility='hidden';box.parentElement.querySelector('[data-charttext="'+id+'"]')?.remove();return;}
+  nd.hidden=true;cv.style.visibility='visible';
+  charts[id]=new Chart(cv,cfg);let alt=box.parentElement.querySelector('[data-charttext="'+id+'"]');if(!alt){alt=document.createElement('details');alt.dataset.charttext=id;alt.className='chart-text';box.after(alt);}alt.innerHTML='<summary>Ver datos del gráfico</summary><div class="scroll"><table class="tbl">'+(cfg.data.datasets||[]).map(ds=>'<tr><th>'+esc(ds.label||cv.getAttribute('aria-label'))+'</th><td>'+ds.data.map((v,i)=>esc((cfg.data.labels?.[i]||v?.code||String(i+1))+': '+(v&&typeof v==='object'?fmt(v.x)+', '+fmt(v.y):fmt(v)))).join('</td><td>')+'</td></tr>').join('')+'</table></div>';
+}
+function axis(t,title,extra){
+  return Object.assign({ticks:{color:t.muted,font:{size:11}},grid:{color:t.line},border:{color:t.line},
+    title:title?{display:true,text:title,color:t.muted,font:{size:11}}:{display:false}},extra||{});
+}
+function legend(t,show){return {display:show!==false,position:'bottom',labels:{color:t.muted,usePointStyle:true,boxWidth:8,font:{size:11}}};}
+function baseOpts(t,o){
+  o=o||{};
+  return {responsive:true,maintainAspectRatio:false,animation:false,indexAxis:o.indexAxis,
+    interaction:o.interaction||{mode:'nearest',intersect:true},
+    plugins:{legend:legend(t,o.legend),tooltip:o.tooltip||{}},
+    scales:{x:axis(t,o.xTitle,o.xExtra),y:axis(t,o.yTitle,o.yExtra)}};
+}
+
+/* ---------- Métricas ---------- */
+function metric(l,v,unit,cls){
+  return `<div class="metric"><div class="v ${cls||''}">${v}${unit?`<small>${unit}</small>`:''}</div><div class="l">${l}</div></div>`;
+}
+function setNote(){}
+
+/* ---------- Pestaña Participantes ---------- */
+function buildPart(){
+  const P=S.participants;
+  let h='<thead><tr><th>Código</th><th>Edad</th><th>Sexo</th><th>Tiempo de evolución (meses)</th><th>EVA inicial (0-10)</th><th style="text-align:left">Nombre local (opcional)</th><th></th></tr></thead><tbody>';
+  if(!P.length)h+='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:26px">Todavía no hay participantes. Agregá uno o pegá la tabla desde Excel.</td></tr>';
+  P.forEach((p,i)=>{
+    const eva=num(p.eva);const bad=eva!==null&&(eva<0||eva>10);
+    h+=`<tr data-i="${i}"><td><strong>${esc(p.code)}</strong></td>
+      <td><input class="cell" inputmode="numeric" data-f="age" value="${esc(p.age)}" aria-label="Edad de ${esc(p.code)}"></td>
+      <td><select class="cell" data-f="sex" aria-label="Sexo de ${esc(p.code)}"><option value="" ${!p.sex?'selected':''}>—</option><option value="M" ${p.sex==='M'?'selected':''}>M</option><option value="F" ${p.sex==='F'?'selected':''}>F</option></select></td>
+      <td><input class="cell" inputmode="decimal" data-f="evolution" value="${esc(p.evolution)}" aria-label="Tiempo de evolución de ${esc(p.code)}"></td>
+      <td><input class="cell ${bad?'bad':''}" inputmode="decimal" data-f="eva" value="${esc(p.eva)}" aria-label="EVA inicial de ${esc(p.code)}"></td>
+      <td><input class="cell l" data-f="name" value="${esc(ui.hideNames?'':p.name)}" ${ui.hideNames?'disabled placeholder="Oculto"':''} aria-label="Nombre de ${esc(p.code)}"></td>
+      <td><button class="del" type="button" data-del="${i}" title="Quitar participante" aria-label="Quitar ${esc(p.code)}">×</button></td></tr>`;
+  });
+  $('#tblPart').innerHTML=h+'</tbody>';
+}
+function updatePart(){
+  const P=S.participants;
+  const ages=P.map(p=>num(p.age)).filter(v=>v!==null);
+  const evo=P.map(p=>num(p.evolution)).filter(v=>v!==null);
+  const eva=P.map(p=>num(p.eva)).filter(v=>v!==null);
+  const dA=desc(ages),dE=desc(evo),dV=desc(eva);
+  $('#mPart').innerHTML=
+    metric('Participantes',P.length)+
+    metric('Edad promedio'+(dA.sd!==null?` (DE ${fmt(dA.sd)})`:''),fmt(dA.mean),'años')+
+    metric('Evolución, mediana',fmt(dE.med),'meses')+
+    metric('EVA inicial promedio',fmt(dV.mean),'/10');
+  const t=theme();
+  const f=P.filter(p=>p.sex==='F').length,m=P.filter(p=>p.sex==='M').length;
+  mk('cSex',{type:'doughnut',data:{labels:['Femenino','Masculino'],datasets:[{data:[f,m],backgroundColor:[t.s[0],t.s[1]],borderColor:t.surface,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,cutout:'62%',plugins:{legend:legend(t),tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed} (${fmt(100*c.parsed/(f+m),0)}%)`}}}}},f+m===0);
+  if(ages.length){
+    const lo=Math.floor(dA.min/10)*10,hi=Math.floor(dA.max/10)*10;const labels=[],counts=[];
+    for(let b=lo;b<=hi;b+=10){labels.push(b+'–'+(b+9));counts.push(ages.filter(a=>a>=b&&a<b+10).length);}
+    const o=baseOpts(t,{legend:false,yTitle:'Participantes',yExtra:{beginAtZero:true,ticks:{color:t.muted,precision:0}}});
+    mk('cAge',{type:'bar',data:{labels,datasets:[{data:counts,backgroundColor:t.s[1],borderRadius:4}]},options:o},false);
+  }else mk('cAge',{},true);
+  if(eva.length){
+    const labels=[],counts=[];for(let i=0;i<=10;i++){labels.push(String(i));counts.push(eva.filter(v=>Math.round(v)===i).length);}
+    const o=baseOpts(t,{legend:false,yTitle:'Participantes',xTitle:'EVA',yExtra:{beginAtZero:true,ticks:{color:t.muted,precision:0}}});
+    mk('cEva',{type:'bar',data:{labels,datasets:[{data:counts,backgroundColor:t.s[2],borderRadius:4}]},options:o},false);
+  }else mk('cEva',{},true);
+}
+
+/* ---------- Pestaña Goniometría ---------- */
+function fillFilters(){
+  $('#fPart').innerHTML='<option value="all">Todos</option>'+S.participants.map(p=>`<option value="${esc(p.code)}">${esc(p.code)}${!ui.hideNames&&p.name?' – '+esc(p.name):''}</option>`).join('');
+  if(ui.gPart!=='all'&&!S.participants.some(p=>p.code===ui.gPart))ui.gPart='all';
+  $('#fPart').value=ui.gPart;
+  $('#fMov').innerHTML='<option value="all">Los 6 movimientos, por separado</option>'+MOVS.map(m=>`<option value="${m.k}">${m.l}</option>`).join('');
+  $('#fMov').value=ui.gMov;
+  $('#fSes').value=S.sessions;
+}
+function getVal(code,s,k,i){const r=S.gonio[code+'|'+s];return r&&r[k]&&r[k][i]!=null?r[k][i]:'';}
+function buildGonio(){
+  const list=S.participants.filter(p=>ui.gPart==='all'||p.code===ui.gPart);
+  let h='<thead><tr><th rowspan="2" class="stick c1">Código</th><th rowspan="2" class="stick c2" style="text-align:center">Sesión</th>'+
+    MOVS.map(m=>`<th colspan="3" class="grp">${m.l}</th>`).join('')+'</tr><tr>'+
+    MOVS.map(()=>'<th class="gb">Pre (°)</th><th>Post (°)</th><th style="text-align:center">Dif.</th>').join('')+'</tr></thead><tbody>';
+  if(!list.length)h+=`<tr><td colspan="${2+MOVS.length*3}" style="text-align:center;color:var(--muted);padding:26px">Primero agregá participantes en la pestaña Participantes.</td></tr>`;
+  list.forEach(p=>{
+    for(let s=1;s<=S.sessions;s++){
+      h+=`<tr class="${s===1?'first':''}"><td class="stick c1 ${s>1?'muted-code':''}"><strong>${esc(p.code)}</strong></td><td class="stick c2" style="text-align:center">${s}</td>`;
+      MOVS.forEach(m=>{
+        const base=`data-c="${esc(p.code)}" data-s="${s}" data-m="${m.k}"`;
+        h+=`<td class="gb"><input class="cell" inputmode="decimal" ${base} data-i="0" value="${esc(getVal(p.code,s,m.k,0))}" aria-label="${esc(p.code)} sesión ${s} ${m.l} pre"></td>
+            <td><input class="cell" inputmode="decimal" ${base} data-i="1" value="${esc(getVal(p.code,s,m.k,1))}" aria-label="${esc(p.code)} sesión ${s} ${m.l} post"></td>
+            <td class="dif" data-m="${m.k}"></td>`;
+      });
+      h+='</tr>';
+    }
+  });
+  const tbl=$('#tblGonio');tbl.innerHTML=h+'</tbody>';
+  $$('tbody tr',tbl).forEach(tr=>{if(tr.querySelector('input')){refreshRowDiff(tr);markIncomplete(tr);}});
+}
+function setDif(td,pre,post){
+  td.className='dif';
+  const a=num(pre),b=num(post);
+  if(a===null||b===null){td.textContent='';return;}
+  const d=b-a;td.textContent=(d>0?'+':'')+fmt(d,Number.isInteger(d)?0:1);
+  td.classList.add(d>0?'pos':d<0?'neg':'zero');
+}
+function refreshRowDiff(tr){
+  MOVS.forEach(m=>{
+    const ins=$$(`input[data-m="${m.k}"]`,tr);if(ins.length<2)return;
+    setDif($(`td.dif[data-m="${m.k}"]`,tr),ins[0].value,ins[1].value);
+  });
+}
+function updateGonio(){
+  drawMinis();
+  const list=S.participants.filter(p=>ui.gPart==='all'||p.code===ui.gPart);
+  const C=compute(list);
+  $('#mGonio').innerHTML=
+    metric('Mediciones pre y post completas',`${C.done}`,`/ ${C.expected}`)+
+    metric('Ganancia media',fmtSigned(C.all.mean),'°',C.all.mean>0?'pos':C.all.mean<0?'neg':'')+
+    metric('Mediciones con mejora',fmt(C.pctImp,0),'%')+
+    metric('Sesiones por participante',S.sessions);
+  const t=theme();
+  const labels=Array.from({length:S.sessions},(_,i)=>'Sesión '+(i+1));
+  const idx=ui.gMov==='all'?MOVS.map((_,i)=>i):[MOVS.findIndex(m=>m.k===ui.gMov)];
+  const mName=ui.gMov==='all'?'todos los movimientos':MOVS[idx[0]].l.toLowerCase();
+  $('#romTitle').textContent='Pre y post por sesión, '+mName;
+  const pre=[],post=[];
+  for(let s=0;s<S.sessions;s++){
+    const a=[],b=[];idx.forEach(mi=>{a.push(...C.bySession[mi][s].pre);b.push(...C.bySession[mi][s].post);});
+    pre.push(mean(a));post.push(mean(b));
+  }
+  const o=baseOpts(t,{interaction:{mode:'index',intersect:false},yTitle:'Grados (°)',yExtra:{beginAtZero:false},
+    tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.y)}°`}}});
+  mk('cRom',{type:'line',data:{labels,datasets:[
+    {label:'Pre',data:pre,borderColor:t.pre,backgroundColor:t.pre,tension:.25,pointRadius:4,borderWidth:2.5,spanGaps:false},
+    {label:'Post',data:post,borderColor:t.post,backgroundColor:t.post,tension:.25,pointRadius:4,borderWidth:2.5,spanGaps:false}]},options:o},C.done===0);
+  const ds=MOVS.map((m,mi)=>({label:m.s,data:C.bySession[mi].map(b=>mean(b.diff)),borderColor:t.s[mi],backgroundColor:t.s[mi],tension:.25,pointRadius:3,borderWidth:2,spanGaps:false}));
+  const o2=baseOpts(t,{interaction:{mode:'index',intersect:false},yTitle:'Diferencia post − pre (°)',tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmtSigned(c.parsed.y)}°`}}});
+  mk('cGain',{type:'line',data:{labels,datasets:ds},options:o2},C.done===0);
+}
+
+/* ---------- Pestaña Resumen ---------- */
+function gaugeSVG(pre,post,max){
+  return `<div class="pairbars" role="img" aria-label="Pre ${fmt(pre)} grados, post ${fmt(post)} grados; escala común 0 a ${max}">${[['Pre',pre,'--pre'],['Post',post,'--post']].map(([label,value,color])=>`<div>${label} <strong>${fmt(value)}°</strong><div class="track"><span style="width:${value===null?0:100*value/max}%;background:var(${color})"></span></div></div>`).join('')}<small>0° a ${max}° · escala común</small></div>`;
+}
+function updateRes(){
+  const C=compute();
+  $('#resEmptyAction').hidden=C.done>0;
+  $('#conclusion').textContent=C.done?`Ganancia media de ${fmtSigned(mean(C.partGain.map(x=>x.g)))}° en ${C.partGain.length} participantes con pares completos. Promedio de las medias individuales.`:'Sin mediciones completas. Cargá pre y post para generar el resumen.';
+  const best=C.mov.filter(x=>x.d.mean!==null).sort((a,b)=>b.d.mean-a.d.mean)[0];
+  const f=C.P.filter(p=>p.sex==='F').length,m=C.P.filter(p=>p.sex==='M').length;
+  $('#mRes').innerHTML=
+    metric('Participantes'+(f+m?` (${f} F, ${m} M)`:''),C.P.length)+
+    metric('Mediciones pre y post completas',fmt(C.expected?100*C.done/C.expected:null,0),'%')+
+    metric('Ganancia media global',fmtSigned(C.all.mean),'°',C.all.mean>0?'pos':C.all.mean<0?'neg':'')+
+    metric('Mediciones con mejora',fmt(C.pctImp,0),'%')+
+    metric(best?`Mayor ganancia: ${best.m.l.toLowerCase()}`:'Mayor ganancia',best?fmtSigned(best.d.mean):'—',best?'°':'');
+  /* diales */
+  $('#gauges').innerHTML=C.mov.map((x,i)=>{
+    const max=180;
+    const gain=x.d.mean;
+    return `<figure class="gauge"><figcaption>${x.m.l}</figcaption>${gaugeSVG(x.meanPre,x.meanPost,max)}
+      <div class="legend"><span><i class="sw" style="background:var(--pre)"></i>Pre ${fmt(x.meanPre)}°</span><span class="gain ${gain>0?'pos':gain<0?'neg':''}">${fmtSigned(gain)}°</span></div></figure>`;
+  }).join('');
+  const t=theme();
+  /* diferencia por movimiento */
+  const has=C.done>0;
+  const o=baseOpts(t,{legend:false,yTitle:'Diferencia post − pre (°)',tooltip:{callbacks:{label:c=>` Media: ${fmtSigned(c.parsed.y)}° (DE ${fmt(C.mov[c.dataIndex].d.sd)}, n=${C.mov[c.dataIndex].n})`}}});
+  mk('cDiff',{type:'bar',data:{labels:MOVS.map(x=>x.s),datasets:[{
+    data:C.mov.map(x=>x.d.mean),sd:C.mov.map(x=>x.d.sd),
+    backgroundColor:C.mov.map(x=>x.d.mean<0?t.loss:t.post),borderRadius:5,maxBarThickness:56}]},options:o},!has);
+  /* por participante */
+  const pg=[...C.partGain].sort((a,b)=>b.g-a.g);
+  $('#partBox').style.height=Math.max(300,pg.length*28+70)+'px';
+  const o2=baseOpts(t,{indexAxis:'y',legend:false,xTitle:'Ganancia media (°)',tooltip:{callbacks:{label:c=>` ${fmtSigned(c.parsed.x)}° (n=${pg[c.dataIndex].n} mediciones)`}}});
+  mk('cPart',{type:'bar',data:{labels:pg.map(x=>x.p.code+(!ui.hideNames&&x.p.name?' '+x.p.name:'')),datasets:[{data:pg.map(x=>x.g),backgroundColor:pg.map(x=>x.g<0?t.loss:t.post),borderRadius:4}]},options:o2},pg.length===0);
+  /* dispersión */
+  const vk=ui.scVar;const vl={eva:'EVA inicial',evo:'Tiempo de evolución (meses)',age:'Edad (años)'}[vk];
+  const fk={eva:'eva',evo:'evolution',age:'age'}[vk];
+  const pts=C.partGain.map(x=>({x:num(x.p[fk]),y:x.g,code:x.p.code})).filter(q=>q.x!==null);
+  const r=pearson(pts.map(q=>q.x),pts.map(q=>q.y));
+  $('#scNote').textContent=pts.length>=3&&r!==null
+    ?`Cada punto es un participante. Correlación de Pearson r = ${fmt(r,2)} (n = ${pts.length}). Con pocos casos, es solo una orientación.`
+    :'Cada punto es un participante. Se necesitan al menos 3 con datos para calcular la correlación.';
+  const ds=[{label:'Participantes',data:pts,backgroundColor:t.post,pointRadius:6,pointHoverRadius:8}];
+  if(pts.length>=3){
+    const xs=pts.map(q=>q.x),ys=pts.map(q=>q.y),mx=mean(xs),my=mean(ys);
+    let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(ys[i]-my);sxx+=(x-mx)**2;});
+    if(sxx>0){const b=sxy/sxx,a=my-b*mx,x0=Math.min(...xs),x1=Math.max(...xs);
+      ds.push({type:'line',label:'Tendencia',data:[{x:x0,y:a+b*x0},{x:x1,y:a+b*x1}],borderColor:t.muted,borderDash:[6,5],borderWidth:1.5,pointRadius:0,fill:false});}
+  }
+  const o3=baseOpts(t,{xTitle:vl,yTitle:'Ganancia media (°)',tooltip:{callbacks:{label:c=>c.raw.code?` ${c.raw.code}: ${vl} ${fmt(c.raw.x,0)}, ganancia ${fmtSigned(c.raw.y)}°`:''}}});
+  mk('cScatter',{type:'scatter',data:{datasets:ds},options:o3},pts.length<2);
+  /* tablas */
+  const P=C.P,tot=P.length;
+  const pc=n=>tot?fmt(100*n/tot):'—';
+  const unk=P.filter(p=>p.sex!=='M'&&p.sex!=='F').length;
+  $('#tQual').innerHTML=`<caption>Variables cualitativas</caption><thead><tr><th>Variable / categoría</th><th>Frecuencia (n)</th><th>Porcentaje (%)</th></tr></thead><tbody>
+    <tr><td>Sexo: Masculino (M)</td><td>${m}</td><td>${pc(m)}</td></tr>
+    <tr><td>Sexo: Femenino (F)</td><td>${f}</td><td>${pc(f)}</td></tr>
+    ${unk?`<tr><td>Sexo: sin dato</td><td>${unk}</td><td>${pc(unk)}</td></tr>`:''}
+    <tr><td><strong>Total participantes (n)</strong></td><td><strong>${tot}</strong></td><td></td></tr></tbody>`;
+  const rowQ=(l,a)=>{const d=desc(a);return `<tr><td>${l}</td><td>${d.n}</td><td>${fmt(d.mean)}</td><td>${fmt(d.sd)}</td><td>${fmt(d.med)}</td><td>${fmt(d.q1)} – ${fmt(d.q3)}</td><td>${fmt(d.min)}</td><td>${fmt(d.max)}</td></tr>`;};
+  const col=k=>P.map(p=>num(p[k])).filter(v=>v!==null);
+  $('#tBase').innerHTML=`<caption>Variables cuantitativas, datos basales</caption><thead><tr><th>Variable</th><th>n</th><th>Media</th><th>Desvío estándar</th><th>Mediana</th><th>RIC (Q1–Q3)</th><th>Mínimo</th><th>Máximo</th></tr></thead><tbody>
+    ${rowQ('Edad (años)',col('age'))}${rowQ('Tiempo de evolución (meses)',col('evolution'))}${rowQ('EVA inicial (0-10)',col('eva'))}</tbody>`;
+  const pchip=p=>p===null?'—':`<span class="chip ${p<.05?'ok':''}">${fmtP(p)}</span>`;
+  const rowG=(l,n,np,pre,post,d,pct,p,tip)=>`<tr><td>${l}</td><td>${n}</td><td>${np}</td><td>${fmt(pre)}</td><td>${fmt(post)}</td><td><strong>${fmtSigned(d.mean)}</strong></td><td>${fmt(d.sd)}</td><td>${fmt(d.med)}</td><td>${fmt(d.q1)} – ${fmt(d.q3)}</td><td>${fmt(pct,0)}</td><td title="${tip||''}">${pchip(p)}</td></tr>`;
+  $('#tGonio').innerHTML=`<caption>Diferencia goniométrica por movimiento · ${ui.comparison==='ends'?'primera pre / última post':ui.session==='all'?'todas las sesiones':'sesión '+ui.session}</caption><thead><tr><th>Movimiento</th><th>n medic.</th><th>n part.</th><th>Pre, media (°)</th><th>Post, media (°)</th><th>Dif. media (°)</th><th>Desvío estándar</th><th>Mediana</th><th>RIC (Q1–Q3)</th><th>Con mejora (%)</th><th>p (t pareada)</th></tr></thead><tbody>
+    ${C.mov.map(x=>rowG(x.m.l,x.n,x.nPart,x.meanPre,x.meanPost,x.d,x.pctImp,x.p,`Prueba sobre ${x.nPart} participantes`+(x.dz!==null?`, d de Cohen = ${fmt(x.dz,2)}`:''))).join('')}
+    <tr><td><strong>Todos los movimientos</strong></td><td>${C.all.n}</td><td>${C.partGain.length}</td><td>${fmt(mean(C.allPre))}</td><td>${fmt(mean(C.allPost))}</td><td><strong>${fmtSigned(C.all.mean)}</strong></td><td>${fmt(C.all.sd)}</td><td>${fmt(C.all.med)}</td><td>${fmt(C.all.q1)} – ${fmt(C.all.q3)}</td><td>${fmt(C.pctImp,0)}</td><td></td></tr></tbody>`;
+}
+
+/* ---------- Navegación y refresco ---------- */
+function showTab(name){
+  ui.tab=name;
+  $$('.tab').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===name));b.tabIndex=b.dataset.tab===name?0:-1;});
+  $$('.panel').forEach(p=>p.hidden=(p.id!=='p-'+name));
+  if(name==='part'){buildPart();}
+  if(name==='gonio'){fillFilters();buildGonio();buildCapture();} if(name==='res')fillResFilters();
+  updateActive();
+}
+function updateActive(){
+  if(ui.tab==='part')updatePart();
+  else if(ui.tab==='gonio')updateGonio();
+  else updateRes();
+  $('#demoBanner').hidden=!S.demo;
+}
+let raf=0;
+function live(){cancelAnimationFrame(raf);raf=requestAnimationFrame(updateActive);save();}
+
+/* ---------- Eventos de edición ---------- */
+$('#tblPart').addEventListener('input',e=>{
+  const el=e.target;if(!el.dataset.f)return;
+  const i=+el.closest('tr').dataset.i;S.participants[i][el.dataset.f]=el.value;
+  if(el.dataset.f==='eva'){const v=num(el.value);el.classList.toggle('bad',v!==null&&(v<0||v>10));}
+  live();
+});
+$('#tblPart').addEventListener('change',e=>{
+  const el=e.target;if(el.tagName!=='SELECT')return;
+  const i=+el.closest('tr').dataset.i;S.participants[i][el.dataset.f]=el.value;live();
+});
+$('#tblPart').addEventListener('click',e=>{
+  const b=e.target.closest('[data-del]');if(!b)return;
+  const i=+b.dataset.del;const p=S.participants[i];
+  ask(`Se quita a ${p.code}${!ui.hideNames&&p.name?' ('+p.name+')':''} y todas sus mediciones.`,'Quitar participante').then(ok=>{
+    if(!ok)return;backup();
+    Object.keys(S.gonio).forEach(k=>{if(k.split('|')[0]===p.code)delete S.gonio[k];});
+    S.participants.splice(i,1);save();buildPart();updateActive();
+  });
+});
+$('#addPart').addEventListener('click',()=>{
+  const max=S.participants.reduce((a,p)=>Math.max(a,parseInt(String(p.code).replace(/\D/g,''),10)||0),0);
+  const code='P'+String(max+1).padStart(2,'0');
+  S.participants.push({code,name:'',age:'',sex:'',evolution:'',eva:''});
+  save();buildPart();updateActive();
+  const rows=$$('#tblPart tbody tr');const last=rows[rows.length-1];if(last){const inp=$('input',last);if(inp)inp.focus();}
+});
+$('#tblGonio').addEventListener('input',e=>{
+  const el=e.target;if(!el.dataset.c)return;
+  const key=el.dataset.c+'|'+el.dataset.s;
+  if(!S.gonio[key])S.gonio[key]={};
+  const m=el.dataset.m;if(!S.gonio[key][m])S.gonio[key][m]=['',''];
+  S.gonio[key][m][+el.dataset.i]=el.value;
+  const tr=el.closest('tr');const ins=$$(`input[data-m="${m}"]`,tr);
+  setDif($(`td.dif[data-m="${m}"]`,tr),ins[0].value,ins[1].value);
+  live();
+});
+$('#fPart').addEventListener('change',e=>{ui.gPart=e.target.value;buildGonio();updateActive();});
+$('#fMov').addEventListener('change',e=>{ui.gMov=e.target.value;updateActive();});
+$('#fSes').addEventListener('change',e=>{
+  let v=parseInt(e.target.value,10);if(!Number.isFinite(v))v=S.sessions;v=Math.max(1,Math.min(12,v));
+  const occupied=Object.keys(S.gonio).filter(k=>+k.split('|')[1]>v&&Object.values(S.gonio[k]).some(a=>a.some(x=>num(x)!==null)));
+  if(occupied.length){e.target.value=S.sessions;toast('No se puede reducir: hay mediciones en sesiones posteriores. No se ocultaron datos.');return;}
+  e.target.value=v;S.sessions=v;save();buildGonio();buildCapture();updateActive();
+});
+$('#scVar').addEventListener('change',e=>{ui.scVar=e.target.value;updateActive();});
+$$('.tab').forEach(b=>{
+  b.addEventListener('click',()=>showTab(b.dataset.tab));
+  b.addEventListener('keydown',e=>{
+    const tabs=$$('.tab');const i=tabs.indexOf(b);let n=null;
+    if(e.key==='ArrowRight')n=tabs[(i+1)%tabs.length];
+    if(e.key==='ArrowLeft')n=tabs[(i-1+tabs.length)%tabs.length];
+    if(n){n.focus();showTab(n.dataset.tab);}
+  });
+});
+
+/* ---------- Diálogos ---------- */
+function ask(msg,title,yesLabel,noLabel){
+  return new Promise(res=>{
+    const d=$('#dlgConfirm');$('#dcMsg').textContent=msg;$('#dcTitle').textContent=title||'¿Seguro?';$('#dcYes').textContent=yesLabel||(/Borrar|Quitar/.test(title||'')?title:'Confirmar');$('#dcYes').className=/Borrar|Quitar|Reemplazar/.test(title||'')?'btn danger':'btn primary';$('#dcNo').textContent=noLabel||'Cancelar';
+    const done=v=>{$('#dcYes').onclick=null;$('#dcNo').onclick=null;d.onclose=null;if(d.open)d.close();res(v);};
+    $('#dcYes').onclick=()=>done(true);$('#dcNo').onclick=()=>done(false);d.onclose=()=>done(false);
+    d.showModal();
+  });
+}
+let toastT=0;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200);}
+function parseTable(txt){
+  return txt.split(/\r?\n/).map(l=>l.trim()?l.split(/\t|;/).map(c=>c.trim()):null).filter(Boolean);
+}
+let pasteKind='part';
+function openPaste(kind){
+  pasteKind=kind;
+  if($('#excelPreview'))$('#excelPreview').textContent='';$('#dpOk').textContent='Ver vista previa';
+  $('#dpText').value='';
+  if(kind==='part'){
+    $('#dpTitle').textContent='Pegar participantes';
+    $('#dpHelp').textContent='Copiá las filas de la hoja Participantes en Excel y pegalas acá. Orden de columnas: Código, Edad, Sexo, Tiempo de evolución, EVA inicial, Nombre. Se acepta una fila de encabezado.';
+  }else{
+    $('#dpTitle').textContent='Pegar goniometría';
+    $('#dpHelp').textContent='Copiá las filas de la hoja Goniometría (Código, Sesión y las 6 columnas de movimientos con Pre, Post y Diferencia) y pegalas acá. También sirve sin las columnas de diferencia. Se ignora el encabezado.';
+  }
+  $('#dlgPaste').showModal();
+}
+$('#pastePart').addEventListener('click',()=>openPaste('part'));
+$('#pasteGonio').addEventListener('click',()=>openPaste('gonio'));
+$('#dpCancel').addEventListener('click',()=>$('#dlgPaste').close());
+$('#dpOk').addEventListener('click',()=>{
+  const rows=parseTable($('#dpText').value);const replace=$('#dpMode').value==='replace';
+  if(!rows.length){toast('No hay datos para importar.');return;}
+  let cnt=0;
+  if(pasteKind==='part'){
+    if(replace){S.participants=[];S.gonio={};}
+    rows.forEach(r=>{
+      const code=(r[0]||'').toUpperCase();if(!code||/^c[oó]d/i.test(code))return;
+      let sex=(r[2]||'').trim().toUpperCase().charAt(0);if(sex!=='M'&&sex!=='F')sex='';
+      const rec={code,age:r[1]||'',sex,evolution:r[3]||'',eva:r[4]||'',name:r[5]||''};
+      const ex=S.participants.find(p=>p.code===code);
+      if(ex)Object.assign(ex,Object.fromEntries(Object.entries(rec).filter(([k,v])=>v!=='')));else S.participants.push(rec);cnt++;
+    });
+  }else{
+    if(replace)S.gonio={};
+    rows.forEach(r=>{
+      const code=(r[0]||'').toUpperCase();const s=parseInt(r[1],10);
+      if(!code||!Number.isFinite(s)||s<1)return;
+      const vals=r.slice(2);const step=vals.length>=18?3:2;
+      if(!S.participants.some(p=>p.code===code))S.participants.push({code,name:'',age:'',sex:'',evolution:'',eva:''});
+      const row={};
+      MOVS.forEach((m,mi)=>{const a=vals[mi*step],b=vals[mi*step+1];if((a!==undefined&&a!=='')||(b!==undefined&&b!==''))row[m.k]=[a||'',b||''];});
+      S.gonio[code+'|'+s]=mergeRow(S.gonio[code+'|'+s],row);S.sessions=Math.max(S.sessions,Math.min(12,s));cnt++;
+    });
+  }
+  S.demo=false;save();$('#dlgPaste').close();
+  toast(cnt?`Se importaron ${cnt} filas.`:'No se encontraron filas válidas. Revisá el orden de las columnas.');
+  showTab(ui.tab);
+});
+
+/* ---------- Acciones generales ---------- */
+$('#btnDemo').addEventListener('click',()=>{
+  const go=()=>{if(!S.demo&&hasData())backup();S=demoState();ui.gPart='all';save();showTab(ui.tab);toast('Datos de ejemplo cargados.');};
+  if(S.demo||(!S.participants.length))go();
+  else ask('Se reemplazan los datos actuales por datos de ejemplo.','Cargar ejemplo').then(ok=>{if(ok)go();});
+});
+function clearAll(){backup();S=emptyState();ui.gPart='all';save();showTab(ui.tab);toast('Listo, podés empezar con tus datos.');}
+$('#btnClear').addEventListener('click',()=>ask('Se descargará un respaldo JSON antes de borrar participantes y mediciones. Si estás sincronizando, también se vaciarán los datos de tu cuenta.','Borrar todo').then(ok=>{if(ok)clearAll();}));
+$('#btnStart').addEventListener('click',()=>ask('Se quitan los datos de ejemplo para empezar en blanco.','Empezar con mis datos').then(ok=>{if(ok)clearAll();}));
+$('#copyTables').addEventListener('click',()=>{
+  const out=[];
+  $$('#tablesRes table').forEach(t=>{
+    const cap=$('caption',t);if(cap)out.push(cap.textContent);
+    $$('tr',t).forEach(tr=>out.push($$('th,td',tr).map(c=>c.textContent.trim()).join('\t')));
+    out.push('');
+  });
+  const text=out.join('\n');
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();toast(ok?'Tablas copiadas. Pegalas en Excel.':'No se pudo copiar desde esta ventana.');};
+  try{navigator.clipboard.writeText(text).then(()=>toast('Tablas copiadas. Pegalas en Excel.'),fallback);}catch(e){fallback();}
+});
+
+
+/* ---------- Lectura de PDF ---------- */
+
+function pdfParseDocument(pages){
+  const MOV_KEYS=['flex','ext','ild','ili','rd','ri'];
+  const MOV_LBL=['Flexión','Extensión','Inclinación derecha','Inclinación izquierda','Rotación derecha','Rotación izquierda'];
+  const out={participants:[],rows:[],warnings:[],blankParticipants:0,pagesRead:pages.length,sawHeaders:false};
+  const warn=m=>{if(out.warnings.length<40)out.warnings.push(m);};
+  const CODE=/^[A-Za-z]{0,3}\d{1,4}$/;
+  const clean=s=>String(s).replace(/\u2212/g,'-').trim();
+  let mode=null,pCols=null,gCodeCols=null,gCols=null,warnedNoHdr=false;
+  const nearest=(cols,c)=>{let b=0,bd=Infinity;cols.forEach((k,i)=>{const d=Math.abs(k.c-c);if(d<bd){bd=d;b=i;}});return b;};
+  for(let pi=0;pi<pages.length&&mode!=='summary';pi++){
+    const items=[];
+    pages[pi].items.forEach(i=>{
+      if(String(i.s).trim()==='')return;
+      const s=clean(i.s).replace(/\s*\(grados\)/gi,'(grados)');
+      const tk=s.split(/\s+/);
+      const splittable=tk.length>1&&tk.every(t=>/^-?[\d.,]+$/.test(t)||/^(pre\(grados\)|post\(grados\)|diferencia)$/i.test(t));
+      if(!splittable){items.push({s:s,x:i.x,c:i.x+i.w/2,y:i.y});return;}
+      let from=0;
+      tk.forEach(t=>{
+        const st=s.indexOf(t,from);from=st+t.length;
+        const tx=i.x+i.w*st/s.length,tw=i.w*t.length/s.length;
+        items.push({s:t,x:tx,c:tx+tw/2,y:i.y});
+      });
+    });
+    items.sort((a,b)=>b.y-a.y||a.x-b.x);
+    const rows=[];
+    items.forEach(it=>{const r=rows[rows.length-1];if(r&&Math.abs(r.y-it.y)<=1.5)r.items.push(it);else rows.push({y:it.y,items:[it]});});
+    for(const r of rows){
+      r.items.sort((a,b)=>a.x-b.x);
+      const txt=r.items.map(i=>i.s).join(' ');
+      if(/RESUMEN\s+DESCRIPTIVO/i.test(txt)){mode='summary';break;}
+      const has=re=>r.items.some(i=>re.test(i.s));
+      if(has(/^c[oó]digo$/i)&&has(/^edad$/i)){
+        mode='part';out.sawHeaders=true;
+        const find=re=>r.items.find(i=>re.test(i.s));
+        const defs=[['code',/^c[oó]digo$/i],['age',/^edad$/i],['sex',/^sexo$/i],['evolution',/^tiempo/i],['eva',/^eva/i],['name',/^nombre$/i]];
+        pCols=defs.map(([k,re])=>{const it=find(re);return it?{k,c:it.c}:null;}).filter(Boolean);
+        if(pCols.length<6){warn('No pude identificar todas las columnas de la hoja Participantes.');}
+        continue;
+      }
+      if(has(/^c[oó]digo$/i)&&has(/^sesi[oó]n$/i)){
+        mode='gonio';out.sawHeaders=true;
+        gCodeCols=[{k:'code',c:r.items.find(i=>/^c[oó]digo$/i.test(i.s)).c},{k:'ses',c:r.items.find(i=>/^sesi[oó]n$/i.test(i.s)).c}];
+        continue;
+      }
+      const sub=r.items.filter(i=>/^(pre|post|diferencia)\b/i.test(i.s));
+      if(sub.length>=6){
+        if(sub.length===18)gCols=sub.map(i=>({c:i.c}));
+        else{warn(`El encabezado de goniometría tiene ${sub.length} columnas Pre/Post/Diferencia en vez de 18.`);if(sub.length%3===0&&sub.length>0)gCols=sub.map(i=>({c:i.c}));}
+        continue;
+      }
+      if(has(/^(flexi|extens|inclinaci|rotaci)/i))continue;
+      /* fila de datos */
+      if(mode==='part'&&pCols&&pCols.length===6){
+        const cell={};r.items.forEach(i=>{const k=pCols[nearest(pCols,i.c)].k;cell[k]=(cell[k]?cell[k]+' ':'')+i.s;});
+        if(!cell.code||!CODE.test(cell.code))continue;
+        let sx=(cell.sex||'').charAt(0).toUpperCase();if(sx!=='M'&&sx!=='F')sx='';
+        const rec={code:cell.code.toUpperCase(),age:cell.age||'',sex:sx,evolution:cell.evolution||'',eva:cell.eva||'',name:cell.name||''};
+        if(!rec.age&&!rec.sex&&!rec.evolution&&!rec.eva&&!rec.name){out.blankParticipants++;continue;}
+        out.participants.push(rec);
+      }else if(mode==='gonio'){
+        if(!gCodeCols||!gCols||gCols.length!==18){if(!warnedNoHdr){warn('Encontré filas de goniometría pero no el encabezado completo de columnas.');warnedNoHdr=true;}continue;}
+        const cols=gCodeCols.concat(gCols);
+        const cell=new Array(cols.length).fill('');
+        r.items.forEach(i=>{const k=nearest(cols,i.c);cell[k]=(cell[k]?cell[k]+' ':'')+i.s;});
+        const code=cell[0];const ses=parseInt(cell[1],10);
+        if(!code||!CODE.test(code)||!Number.isFinite(ses))continue;
+        const vals=[];let any=false;
+        for(let m=0;m<6;m++){
+          const a=cell[2+3*m],b=cell[3+3*m],d=cell[4+3*m];
+          const na=num(a),nb=num(b),nd=num(d);
+          if(na!==null||nb!==null){any=true;}
+          if(na!==null&&nb!==null&&nd!==null&&Math.abs(nb-na-nd)>0.05)warn(`${code.toUpperCase()}, sesión ${ses}, ${MOV_LBL[m]}: el PDF dice diferencia ${nd} pero post − pre da ${Math.round((nb-na)*100)/100}.`);
+          if((na===null)!==(nb===null))warn(`${code.toUpperCase()}, sesión ${ses}, ${MOV_LBL[m]}: falta el valor ${na===null?'pre':'post'}.`);
+          vals.push([na===null?'':na,nb===null?'':nb]);
+        }
+        if(any)out.rows.push({code:code.toUpperCase(),s:ses,vals});
+      }else if(mode===null){
+        /* sin encabezados: se asume el orden de columnas del Excel */
+        const t=r.items.map(i=>i.s);
+        if(CODE.test(t[0]||'')){
+          if(!warnedNoHdr){warn('No encontré encabezados; asumí el orden de columnas de la plantilla.');warnedNoHdr=true;}
+          if(/^[MFmf]/.test(t[2]||'')&&t.length>=5&&!/^[\d.,-]+$/.test(t[2])){
+            out.participants.push({code:t[0].toUpperCase(),age:t[1],sex:t[2].charAt(0).toUpperCase(),evolution:t[3]||'',eva:t[4]||'',name:t.slice(5).join(' ')});
+          }else if(t.length>=14&&Number.isFinite(parseInt(t[1],10))){
+            const v=t.slice(2),st=v.length>=18?3:2,vals=[];let any=false;
+            for(let m=0;m<6;m++){const na=num(v[m*st]),nb=num(v[m*st+1]);if(na!==null||nb!==null)any=true;vals.push([na===null?'':na,nb===null?'':nb]);}
+            if(any)out.rows.push({code:t[0].toUpperCase(),s:parseInt(t[1],10),vals});
+          }
+        }
+      }
+    }
+  }
+  out.mov=MOV_KEYS;
+  return out;
+}
+
+let pdfResult=null;
+async function readPdf(file){
+  if(typeof pdfjsLib==='undefined'){toast('No se pudo cargar el lector de PDF. Revisá tu conexión.');return;}
+  try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';}catch(e){}
+  toast('Leyendo el PDF…');
+  try{
+    const buf=await file.arrayBuffer();
+    const doc=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    const pages=[];let chars=0;
+    for(let p=1;p<=doc.numPages;p++){
+      const pg=await doc.getPage(p);const tc=await pg.getTextContent();
+      const items=tc.items.map(i=>({s:i.str,x:i.transform[4],w:i.width,y:i.transform[5]}));
+      items.forEach(i=>chars+=String(i.s).trim().length);
+      pages.push({items});
+    }
+    pdfResult=pdfParseDocument(pages);pdfResult.chars=chars;pdfResult.name=file.name;
+    showPdfPreview();
+  }catch(err){
+    console.error(err);toast('No pude abrir ese archivo. ¿Es un PDF válido?');
+  }
+}
+function showPdfPreview(){
+  const r=pdfResult;const found=r.participants.length+r.rows.length;
+  const codes=new Set(r.rows.map(x=>x.code));const maxS=r.rows.reduce((a,x)=>Math.max(a,x.s),0);
+  $('#pdfName').textContent=r.name+' ('+r.pagesRead+' páginas)';
+  $('#pdfSum').innerHTML=`<div><b>${r.participants.length}</b><small>participantes</small></div><div><b>${r.rows.length}</b><small>filas de goniometría</small></div><div><b>${codes.size}</b><small>con mediciones</small></div><div><b>${maxS}</b><small>sesiones como máximo</small></div>`;
+  const w=$('#pdfWarn');
+  if(r.warnings.length){w.hidden=false;w.innerHTML=r.warnings.slice(0,12).map(x=>`<li>${esc(x)}</li>`).join('')+(r.warnings.length>12?`<li>y ${r.warnings.length-12} avisos más</li>`:'');}else w.hidden=true;
+  let msg='';
+  if(!found){
+    msg=r.chars<20?'Este PDF no tiene texto que se pueda leer; parece una foto o un escaneo. Exportalo desde Excel con Archivo > Guardar como > PDF.'
+      :'No encontré filas de datos. Revisá que el PDF tenga las hojas Participantes y Goniometría con el mismo formato de la plantilla y que los códigos sean como P01.';
+  }else{
+    msg=`Se omitieron ${r.blankParticipants} filas de participantes sin ningún dato. La hoja de resumen del PDF no se lee: el tablero la calcula de nuevo.`;
+  }
+  $('#pdfMsg').textContent=msg;
+  $('#pdfOk').hidden=!found;$('#pdfModeBox').hidden=!found;
+  $('#dlgPdf').showModal();
+}
+$('#pdfCancel').addEventListener('click',()=>$('#dlgPdf').close());
+$('#pdfOk').addEventListener('click',()=>{
+  const r=pdfResult;if(!r)return;
+  if($('#pdfMode').value==='replace'){S.participants=[];S.gonio={};}
+  r.participants.forEach(rec=>{const ex=S.participants.find(p=>p.code===rec.code);if(ex)Object.assign(ex,Object.fromEntries(Object.entries(rec).filter(([k,v])=>v!=='')));else S.participants.push(rec);});
+  let maxS=0;
+  r.rows.forEach(row=>{
+    if(!S.participants.some(p=>p.code===row.code))S.participants.push({code:row.code,name:'',age:'',sex:'',evolution:'',eva:''});
+    const o={};MOVS.forEach((m,i)=>{const v=row.vals[i];if(v&&(v[0]!==''||v[1]!==''))o[m.k]=[v[0],v[1]];});
+    S.gonio[row.code+'|'+row.s]=mergeRow(S.gonio[row.code+'|'+row.s],o);maxS=Math.max(maxS,row.s);
+  });
+  S.participants.sort((a,b)=>String(a.code).localeCompare(String(b.code),'es',{numeric:true}));
+  if(maxS)S.sessions=Math.max(1,Math.min(12,$('#pdfMode').value==='replace'?maxS:Math.max(S.sessions,maxS)));
+  S.demo=false;ui.gPart='all';save();$('#dlgPdf').close();
+  toast(`PDF cargado: ${r.participants.length} participantes y ${r.rows.length} filas de goniometría.`);
+  showTab('res');
+});
+function handleFiles(files){
+  const f=files&&files[0];if(!f)return;
+  if(!/pdf$/i.test(f.name)&&f.type!=='application/pdf'){toast('Ese archivo no es un PDF.');return;}
+  readPdf(f);
+}
+$('#btnPdf').addEventListener('click',()=>$('#pdfFile').click());
+$('#pdfFile').addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+let dragN=0;
+document.addEventListener('dragenter',e=>{e.preventDefault();dragN++;document.body.classList.add('dragging');});
+document.addEventListener('dragleave',e=>{dragN=Math.max(0,dragN-1);if(!dragN)document.body.classList.remove('dragging');});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{e.preventDefault();dragN=0;document.body.classList.remove('dragging');handleFiles(e.dataTransfer&&e.dataTransfer.files);});
+
+/* Re-dibujar gráficos al cambiar el tema */
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>updateActive());}catch(e){}
+new MutationObserver(()=>updateActive()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* Mejoras de captura, exportación y privacidad. */
+function download(name,body,type){const u=URL.createObjectURL(new Blob([body],{type}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),15000);}
+function backup(){download('goniometria-respaldo-'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.json',JSON.stringify(S,null,2),'application/json');}
+function mergeRow(old,row){const out={...(old||{})};for(const m of MOVS){if(row[m.k])out[m.k]=row[m.k].map((v,i)=>v===''?(old?.[m.k]?.[i]??''):v);}return out;}
+function validNumber(v,max){return v===''||(num(v)!==null&&num(v)>=0&&num(v)<=max);}
+function validation(el,max,label){const ok=validNumber(el.value,max);el.setAttribute('aria-invalid',String(!ok));el.classList.toggle('bad',!ok);el.setAttribute('aria-describedby','validation');$('#validation').hidden=ok;$('#validation').textContent=ok?'':`${label}: ingresá un número entre 0 y ${max}. El valor incorrecto no se guardó.`;return ok;}
+function buildCapture(){
+  const host=$('#captureCard');host.hidden=!ui.capture;
+  $('#tblGonio').closest('.card').hidden=ui.capture;
+  $('#captureToggle').textContent=ui.capture?'Ver grilla completa':'Usar modo captura';
+  if(!S.participants.length){host.innerHTML='<p>Primero agregá un participante.</p><button class="btn primary" data-go="part">Agregar participantes</button>';return;}
+  if(!S.participants.some(p=>p.code===ui.capCode))ui.capCode=S.participants[0].code;
+  ui.capSession=Math.min(ui.capSession,S.sessions);
+  host.innerHTML=`<div class="toolbar"><label class="field">Participante<select id="capCode">${S.participants.map(p=>`<option value="${esc(p.code)}" ${p.code===ui.capCode?'selected':''}>${esc(p.code)}</option>`).join('')}</select></label><label class="field">Sesión<select id="capSession">${Array.from({length:S.sessions},(_,i)=>`<option ${i+1===ui.capSession?'selected':''}>${i+1}</option>`).join('')}</select></label><button class="btn" id="nextCapture">Siguiente sesión</button></div><p class="note">Grados: 0 a 180. Límite técnico de carga, no rango normal clínico. La referencia clínica depende de la región y del protocolo de medición.</p><table class="tbl capture"><thead><tr><th>Movimiento</th><th>Pre (°)</th><th>Post (°)</th><th>Dif.</th></tr></thead><tbody>${MOVS.map(m=>`<tr><th>${m.l}</th>${[0,1].map(i=>`<td><input class="cell" inputmode="decimal" data-c="${esc(ui.capCode)}" data-s="${ui.capSession}" data-m="${m.k}" data-i="${i}" aria-label="${m.l} ${i?'post':'pre'}" value="${esc(getVal(ui.capCode,ui.capSession,m.k,i))}"></td>`).join('')}<td class="dif" data-m="${m.k}"></td></tr>`).join('')}</tbody></table><p id="capIncomplete" role="status"></p>`;
+  $('#capCode').onchange=e=>{ui.capCode=e.target.value;buildCapture();};$('#capSession').onchange=e=>{ui.capSession=+e.target.value;buildCapture();};
+  $('#nextCapture').onclick=()=>{if(ui.capSession<S.sessions){ui.capSession++;buildCapture();}else toast('Última sesión configurada.');};
+  refreshCapture();
+}
+function markIncomplete(tr){let incomplete=false;for(const m of MOVS){const ins=$$(`input[data-m="${m.k}"]`,tr);if(ins.length===2&&((ins[0].value==='')!==(ins[1].value==='')))incomplete=true;}
+ tr.classList.toggle('incomplete',incomplete);tr.title=incomplete?'Incompleta: falta pre o post':'';
+ const first=$('th,td',tr);let badge=$('.incompleteBadge',first);if(incomplete&&!badge){badge=document.createElement('small');badge.className='incompleteBadge';badge.textContent='Falta pre/post';first.append(badge);}else if(!incomplete&&badge)badge.remove();
+}
+function refreshCapture(){let count=0;$$('#captureCard tbody tr').forEach(tr=>{refreshRowDiff(tr);markIncomplete(tr);if(tr.classList.contains('incomplete'))count++;});if($('#capIncomplete'))$('#capIncomplete').textContent=count?`${count} movimientos incompletos: falta pre o post.`:'Solo se calculan diferencias con ambos valores.';}
+function fillResFilters(){$('#resSession').innerHTML='<option value="all">Todas</option>'+Array.from({length:S.sessions},(_,i)=>`<option value="${i+1}">Sesión ${i+1}</option>`).join('');$('#resSession').value=ui.session;}
+function drawMinis(){
+  let box=$('#miniRom');if(!box){box=document.createElement('div');box.id='miniRom';box.className='grid g3';$('#cRom').closest('.grid').before(box);}
+  box.hidden=ui.gMov!=='all';$('#cRom').closest('.card').hidden=ui.gMov==='all';
+  if(ui.gMov!=='all')return;
+  if(!box.children.length)box.innerHTML=MOVS.map(m=>`<div class="card"><h2>${m.l}</h2><div class="chart"><canvas id="mini-${m.k}"></canvas><p class="nodata">Cargá un par pre/post</p></div></div>`).join('');
+  const C=compute(S.participants.filter(p=>ui.gPart==='all'||p.code===ui.gPart)),t=theme();
+  MOVS.forEach((m,i)=>mk('mini-'+m.k,{type:'line',data:{labels:Array.from({length:S.sessions},(_,i)=>'S'+(i+1)),datasets:[{label:'Pre',data:C.bySession[i].map(b=>mean(b.pre)),borderColor:t.pre,backgroundColor:t.pre,spanGaps:false},{label:'Post',data:C.bySession[i].map(b=>mean(b.post)),borderColor:t.post,backgroundColor:t.post,spanGaps:false}]},options:baseOpts(t,{yTitle:'Grados',yExtra:{min:0,max:180}})},!C.mov[i].n));
+}
+function exportCSV(kind){
+ const rows=kind==='part'?[['Código','Edad','Sexo','Evolución meses','EVA inicial'],...S.participants.map(p=>[p.code,p.age,p.sex,p.evolution,p.eva])]:[['Código','Sesión',...MOVS.flatMap(m=>[m.l+' Pre',m.l+' Post',m.l+' Diferencia'])],...S.participants.flatMap(p=>Array.from({length:S.sessions},(_,i)=>[p.code,i+1,...MOVS.flatMap(m=>{const a=getVal(p.code,i+1,m.k,0),b=getVal(p.code,i+1,m.k,1);return [a,b,num(a)!==null&&num(b)!==null?num(b)-num(a):''];})]))];
+ const cell=x=>{let s=String(x??'');if(/^[=+@\t\r]/.test(s)||(/^\-/.test(s)&&num(s)===null))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};download('goniometria-'+kind+'.csv','\uFEFF'+rows.map(r=>r.map(cell).join(';')).join('\r\n'),'text/csv;charset=utf-8');
+}
+function wireGrid(table){
+ table.addEventListener('keydown',e=>{if(!e.target.matches('input,select'))return;const rows=$$('tbody tr',table),tr=e.target.closest('tr'),r=rows.indexOf(tr),cells=$$('input,select',tr),c=cells.indexOf(e.target);let dest;
+ if(e.key==='Enter'||e.key==='ArrowDown')dest=rows[r+1]?.querySelectorAll('input,select')[c];
+ if(e.key==='ArrowUp')dest=rows[r-1]?.querySelectorAll('input,select')[c];
+ if(e.key==='ArrowRight'&&(e.ctrlKey||e.target.selectionStart===e.target.value.length))dest=cells[c+1];
+ if(e.key==='ArrowLeft'&&(e.ctrlKey||e.target.selectionStart===0))dest=cells[c-1];
+ if(dest){e.preventDefault();dest.focus();dest.select?.();}
+ });
+ table.addEventListener('paste',async e=>{if(!e.target.matches('input'))return;const text=e.clipboardData.getData('text');if(!/[\t\n]/.test(text))return;e.preventDefault();const rows=$$('tbody tr',table),tr=e.target.closest('tr'),r=rows.indexOf(tr),c=$$('input,select',tr).indexOf(e.target),incoming=text.trimEnd().split(/\r?\n/).map(l=>l.split('\t'));const changes=[];
+ for(let y=0;y<incoming.length;y++)for(let x=0;x<incoming[y].length;x++){const el=rows[r+y]?.querySelectorAll('input,select')[c+x];if(!el||el.disabled){toast('El bloque supera las celdas editables. No se pegó.');return;}const v=incoming[y][x].trim();const max=el.dataset.f==='eva'?10:el.dataset.f==='age'?120:el.dataset.f==='evolution'?1440:180;if(el.dataset.f==='sex'&&!['','M','F'].includes(v)||(!['name','sex'].includes(el.dataset.f)&&!validNumber(v,max))){toast('Bloque inválido: revisá números, rangos y sexo M/F. No se pegó.');return;}changes.push([el,v]);}
+ if(!await ask(`Se actualizarán ${changes.length} celdas. Primeros valores: ${changes.slice(0,8).map(x=>x[0].dataset.f==='name'?'[nombre local]':x[1]||'(vacío)').join(', ')}. Se descargará un respaldo.`, 'Vista previa del bloque','Pegar bloque'))return;
+ backup();changes.forEach(([el,v])=>{el.value=v;el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));});
+ });
+}
+function validateState(st){
+ if(!st||!Array.isArray(st.participants)||!st.gonio||typeof st.gonio!=='object'||Array.isArray(st.gonio)||!Number.isInteger(st.sessions)||st.sessions<1||st.sessions>12)throw Error('Estructura o sesiones inválidas.');
+ const codes=new Set();for(const p of st.participants){if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$/.test(p.code)||codes.has(p.code))throw Error('Código inválido o duplicado.');codes.add(p.code);for(const [k,max] of [['eva',10],['age',120],['evolution',1440]])if(!validNumber(p[k]??'',max))throw Error('Datos basales fuera de rango.');}
+ for(const [key,row] of Object.entries(st.gonio)){const [code,s]=key.split('|');if(!codes.has(code)||!/^\d+$/.test(s)||+s<1||+s>st.sessions||!row||typeof row!=='object')throw Error('Medición sin participante o sesión válida.');for(const [k,v] of Object.entries(row)){if(!MOVS.some(m=>m.k===k)||!Array.isArray(v)||v.length!==2||v.some(x=>!validNumber(x,180)))throw Error('Grados fuera de 0 a 180.');}}
+ return st;
+}
+function initEnhancements(){
+ document.documentElement.dataset.theme=localStorage.getItem('gonio-theme')||'auto';
+ $('#themeBtn').onclick=()=>{const modes=['auto','light','dark'];const mode=modes[(modes.indexOf(document.documentElement.dataset.theme)+1)%3];document.documentElement.dataset.theme=mode;localStorage.setItem('gonio-theme',mode);$('#themeBtn').textContent='Tema: '+({auto:'automático',light:'claro',dark:'oscuro'}[mode]);};
+ $('#hideNames').onchange=e=>{ui.hideNames=e.target.checked;showTab(ui.tab);};
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)showTab(b.dataset.go);});
+ $('#captureToggle').onclick=()=>{ui.capture=!ui.capture;buildGonio();buildCapture();};
+ $('#captureCard').addEventListener('input',e=>{const el=e.target;if(!el.dataset.m||!validation(el,180,'Grados'))return;const key=el.dataset.c+'|'+el.dataset.s;S.gonio[key]??={};S.gonio[key][el.dataset.m]??=['',''];S.gonio[key][el.dataset.m][+el.dataset.i]=el.value;refreshCapture();live();});
+ for(const id of ['tblPart','tblGonio']){$('#'+id).addEventListener('input',e=>{const el=e.target;if(!el.matches('input'))return;const k=el.dataset.f;if(k==='name')return;const max=k==='eva'?10:k==='age'?120:k==='evolution'?1440:180;if(!validation(el,max,k==='eva'?'EVA':k==='age'?'Edad':k==='evolution'?'Meses':'Grados'))e.stopImmediatePropagation();},true);wireGrid($('#'+id));}
+ wireGrid($('#captureCard'));
+ $('#tblGonio').addEventListener('input',e=>{const tr=e.target.closest('tr');if(tr)markIncomplete(tr);});
+ $('#csvPart').onclick=()=>exportCSV('part');$('#csvGonio').onclick=()=>exportCSV('mediciones');$('#backupBtn').onclick=backup;
+ $('#restoreBtn').onclick=()=>$('#restoreFile').click();$('#restoreFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const st=validateState(JSON.parse(await f.text()));if(await ask(`Restaurar ${st.participants.length} participantes y ${Object.keys(st.gonio).length} sesiones con datos. Se respaldará el estado actual.`, 'Reemplazar datos','Restaurar respaldo')){backup();S=st;save();showTab(ui.tab);}}catch(err){toast('No se restauró: '+err.message);}e.target.value='';};
+ $('#printBtn').onclick=()=>{showTab('res');setTimeout(()=>window.print(),200);};
+ $('#resSex').onchange=e=>{ui.sex=e.target.value;updateRes();};$('#resSession').onchange=e=>{ui.session=e.target.value;updateRes();};$('#resComparison').onchange=e=>{ui.comparison=e.target.value;ui.session='all';$('#resSession').value='all';$('#resSession').disabled=ui.comparison==='ends';updateRes();};
+ let previewSignature='';$('#dpOk').textContent='Ver vista previa';$('#dpText').insertAdjacentHTML('afterend','<div id="excelPreview" class="scroll" aria-live="polite"></div>');
+ $('#dpOk').addEventListener('click',e=>{
+ const sig=pasteKind+'|'+$('#dpMode').value+'|'+$('#dpText').value;const rows=parseTable($('#dpText').value).filter(r=>r[0]&&!/^c[oó]d/i.test(r[0]));let error='';
+ if(!rows.length)error='No hay filas válidas.';
+ rows.forEach(r=>{if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$/.test(r[0]))error='Código inválido (usá letras, números, guion o guion bajo).';if(pasteKind==='part'){if(r.length<5||!validNumber(r[1],120)||!validNumber(r[3],1440)||!validNumber(r[4],10))error='Revisá edad (0–120), evolución (0–1440) y EVA (0–10).';}else{if(!/^\d+$/.test(r[1])||+r[1]<1||+r[1]>12||![14,20].includes(r.length))error='Cada fila necesita una sesión de 1 a 12 y 14 o 20 columnas.';const step=r.length===20?3:2;MOVS.forEach((m,i)=>{if(!validNumber(r[2+i*step]??'',180)||!validNumber(r[3+i*step]??'',180))error='Los grados deben estar entre 0 y 180.';});}});
+ if(error){e.stopImmediatePropagation();$('#excelPreview').textContent=error;return;}
+ if(sig!==previewSignature){e.stopImmediatePropagation();previewSignature=sig;$('#excelPreview').innerHTML=`<p>${rows.length} filas. Modo: ${$('#dpMode').value==='replace'?'REEMPLAZAR: se quitarán los datos actuales de esta sección':'fusionar por código, conservando celdas no informadas'}. Se descargará un respaldo antes de importar.</p><table class="tbl">${rows.slice(0,8).map(r=>'<tr>'+r.map((v,i)=>'<td>'+esc(pasteKind==='part'&&i===5?'[nombre local]':v)+'</td>').join('')+'</tr>').join('')}</table><p>Vista previa de hasta 8 filas.</p>`;$('#dpOk').textContent='Importar datos revisados';return;}
+ backup();previewSignature='';$('#excelPreview').textContent='';$('#dpOk').textContent='Ver vista previa';
+ },true);
+ $('#pdfOk').addEventListener('click',e=>{const r=pdfResult;if(!r)return;let bad=r.rows.some(x=>x.s<1||x.s>12||x.vals.some(a=>a.some(v=>!validNumber(v,180))))||r.participants.some(p=>!validNumber(p.eva??'',10)||!validNumber(p.age??'',120)||!validNumber(p.evolution??'',1440));if(bad){e.stopImmediatePropagation();$('#pdfMsg').textContent='Importación bloqueada: hay sesiones o valores fuera de rango. Corregí el PDF.';return;}backup();},true);
+ $('#loginBtn').onclick=()=>$('#authDialog').showModal();
+ $('#authClose').onclick=()=>$('#authDialog').close();
+ $('#authForm').onsubmit=async e=>{e.preventDefault();if(!cloud.auth){$('#authMsg').textContent='Firebase no está disponible. Los datos siguen guardados localmente.';return;}try{await cloud.auth.signInWithEmailAndPassword($('#authEmail').value,$('#authPass').value);$('#authPass').value='';$('#authDialog').close();}catch(err){$('#authMsg').textContent='No se pudo iniciar sesión ('+err.code+'). Revisá las credenciales y la configuración del proyecto.';}};
+ $('#logout').onclick=async()=>{if(cloud.auth){clearTimeout(cloud.timer);await cloud.auth.signOut();$('#authDialog').close();}};
+ $('#resolveCloud').onclick=()=>resolveConflict();
+ window.addEventListener('storage',e=>{if(e.key===storageKey){$('#localConflict').hidden=false;cloud.blocked=true;clearTimeout(cloud.timer);setSync('wait','Sincronización pausada: otra pestaña editó');}});
+ $('#reloadLocal').onclick=()=>{try{backup();S=validateState(JSON.parse(localStorage.getItem(storageKey)));$('#localConflict').hidden=true;showTab(ui.tab);toast('Versión local cargada. Reconectá la cuenta para sincronizar.');}catch(e){toast('No se pudo cargar esa versión.');}};
+}
+
+/* Firebase: acceso por cuenta, sin reutilizar el documento compartido antiguo.
+   Configuración web pública: la API key no es una contraseña. La autorización
+   depende de Firebase Auth y de las reglas publicadas en Firestore. */
+const firebaseConfig={apiKey:'AIzaSyD-vaiTZyXzIWdFJ61A8ppXu2h2E4A1uQA',authDomain:'departamentos-37c4e.firebaseapp.com',projectId:'departamentos-37c4e',storageBucket:'departamentos-37c4e.firebasestorage.app',messagingSenderId:'477447574305',appId:'1:477447574305:web:8eaeb10e11f99e9cbd2460'};
+const cloud={ref:null,auth:null,db:null,ready:false,timer:0,lastJson:'',revision:0,blocked:false,unsubscribe:null,pending:null,writing:false,user:null};
+function stable(o){if(Array.isArray(o))return '['+o.map(stable).join(',')+']';if(o&&typeof o==='object')return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}';return JSON.stringify(o===undefined?null:o);}
+function payload(){return JSON.parse(JSON.stringify({participants:S.participants.map(({code,age,sex,evolution,eva})=>({code,age,sex,evolution,eva})),gonio:S.gonio,sessions:S.sessions}));}
+function hasData(){return S.participants.length>0||Object.keys(S.gonio).length>0;}
+function fromDoc(d){return validateState({participants:(d.participants||[]).map(p=>({...p,name:S.participants.find(x=>x.code===p.code)?.name||''})),gonio:d.gonio||{},sessions:d.sessions||5,demo:false});}
+function setSync(kind,msg){$('#syncStat').className='sync '+kind;$('#syncTxt').textContent=msg;}
+function onCloudErr(e){setSync('err','Nube no guardada: '+(e.code||e.message||'error'));}
+function cloudPush(){if(!cloud.ref||!cloud.ready||cloud.blocked||S.demo)return;clearTimeout(cloud.timer);setSync('wait','Nube: cambios pendientes');cloud.timer=setTimeout(cloudPushNow,700);}
+async function cloudPushNow(){
+ if(!cloud.ref||!cloud.ready||cloud.blocked||S.demo||cloud.writing)return;
+ const data=payload(),ref=cloud.ref,revision=cloud.revision;cloud.writing=true;let succeeded=false;
+ try{await cloud.db.runTransaction(async tx=>{const doc=await tx.get(ref);if((doc.exists?doc.data().revision||0:0)!==revision)throw Error('CONFLICT');tx.set(ref,{...data,revision:revision+1,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});if(cloud.ref!==ref)return;succeeded=true;cloud.revision=revision+1;cloud.lastJson=stable(data);setSync('ok','Nube: sincronizado');}
+ catch(e){if(cloud.ref!==ref)return;if(e.message==='CONFLICT'){cloud.blocked=true;$('#cloudConflict').hidden=false;setSync('wait','Otro dispositivo editó: revisar conflicto');}else onCloudErr(e);}
+ finally{cloud.writing=false;if(succeeded&&cloud.ref===ref&&!cloud.blocked&&stable(payload())!==cloud.lastJson)cloudPush();}
+}
+function applyRemote(remote){S=remote;cloud.lastJson=stable(payload());saveLocal();showTab(ui.tab);setSync('ok','Nube: sincronizado');}
+function conflict(remote,revision){clearTimeout(cloud.timer);cloud.pending={remote,revision};cloud.blocked=true;$('#cloudConflict').hidden=false;setSync('wait','Datos distintos: sincronización pausada');}
+function onRemote(snap){
+ if(snap.metadata.hasPendingWrites||snap.metadata.fromCache)return;
+ try{const d=snap.exists?snap.data():null,revision=d?.revision||0,remote=d?fromDoc(d):emptyState();const rj=stable({participants:remote.participants.map(({name,...p})=>p),gonio:remote.gonio,sessions:remote.sessions});
+ if(cloud.writing)return;
+ if(!cloud.ready){cloud.ready=true;cloud.revision=revision;if(S.demo||!hasData()){applyRemote(remote);return;}if(stable(payload())!==rj){conflict(remote,revision);return;}cloud.lastJson=rj;}
+ else if(revision!==cloud.revision){if(stable(payload())!==cloud.lastJson||S.demo){conflict(remote,revision);return;}cloud.revision=revision;applyRemote(remote);toast('Otro dispositivo actualizó los datos.');}
+ setSync('ok','Nube: sincronizado');
+ }catch(e){cloud.blocked=true;onCloudErr(e);}
+}
+async function resolveConflict(){
+ if(!cloud.ref)return;
+ try{const snap=await cloud.ref.get({source:'server'});cloud.pending={remote:snap.exists?fromDoc(snap.data()):emptyState(),revision:snap.exists?snap.data().revision||0:0};$('#conflictDialog').showModal();}catch(e){onCloudErr(e);}
+}
+function cloudInit(){
+ $('#conflictCancel').onclick=()=>$('#conflictDialog').close();
+ $('#conflictRemote').onclick=()=>{backup();cloud.revision=cloud.pending.revision;applyRemote(cloud.pending.remote);cloud.blocked=false;$('#cloudConflict').hidden=true;$('#conflictDialog').close();};
+ $('#conflictLocal').onclick=async()=>{const base=cloud.pending.revision;$('#conflictDialog').close();if(!await ask('Se reemplazarán los datos de tu cuenta por los de este navegador. Se descargará una copia de la nube.','Reemplazar nube','Subir datos locales'))return;download('respaldo-nube.json',JSON.stringify(cloud.pending.remote,null,2),'application/json');cloud.revision=base;cloud.blocked=false;$('#cloudConflict').hidden=true;cloudPushNow();};
+ if(typeof firebase==='undefined'||!firebase.auth){setSync('wait','Guardado local · nube no disponible');return;}
+ try{if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);cloud.db=firebase.firestore();cloud.auth=firebase.auth();
+ cloud.auth.onAuthStateChanged(user=>{
+ clearTimeout(cloud.timer);cloud.unsubscribe?.();cloud.ref=null;cloud.ready=false;cloud.blocked=false;cloud.lastJson='';cloud.pending=null;$('#cloudConflict').hidden=true;
+ if(cloud.user){saveLocal();S=emptyState();}
+ cloud.user=user;storageKey=user?KEY+'-user-'+user.uid:KEY;
+ if(user){const saved=localStorage.getItem(storageKey);if(saved)try{S=validateState(JSON.parse(saved));}catch(e){S=emptyState();}
+ cloud.ref=cloud.db.collection('users').doc(user.uid).collection('goniometria').doc('principal');cloud.unsubscribe=cloud.ref.onSnapshot({includeMetadataChanges:true},onRemote,onCloudErr);$('#loginBtn').textContent='Cuenta conectada';$('#authMsg').textContent='Sesión: '+user.email;
+ }else{S=load()||emptyState();$('#loginBtn').textContent='Cuenta y nube';setSync('','Guardado local · sin sesión');}
+ $('#logout').hidden=!user;showTab(ui.tab);
+ });}catch(e){onCloudErr(e);}
+}
+
+initEnhancements();
+showTab('part');
+cloudInit();
+})();
+</script>
+</body>
+</html>
